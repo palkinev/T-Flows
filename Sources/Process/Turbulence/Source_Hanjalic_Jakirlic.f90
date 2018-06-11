@@ -3,6 +3,9 @@
 !------------------------------------------------------------------------------!
 !   Calculate source terms for transport equations for Re stresses and         !
 !   dissipation for Hanjalic-Jakirlic model.                                   !
+!   Following paper "A new approach to modelling near-wall turbulence energy   !
+!   and stress dissipation"                                                    !
+!   DOI: 10.1017/S0022112002007905                                             !
 !------------------------------------------------------------------------------!
 !----------------------------------[Modules]-----------------------------------!
   use Const_Mod

@@ -158,7 +158,7 @@
     call Write_Backup_Variable(fh, d, 'eps', eps)
 
     ! F22
-    if(turbulence_model .eq. HANJALIC_JAKIRLIC) then
+    if(turbulence_model .ne. HANJALIC_JAKIRLIC) then
       call Write_Backup_Variable(fh, d, 'f22',  f22)
     end if
 
