@@ -35,6 +35,8 @@
   integer :: i, j, k, iter, sub
 !==============================================================================!
 
+  error = 0.
+
   n  = mat_a % pnt_grid % n_cells
   nb = mat_a % pnt_grid % n_bnd_cells
 
