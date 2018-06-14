@@ -15,7 +15,7 @@
   ! call Control_Mod_Turbulence_Model_Variant(.true.)
 
   c_1e    =  1.44
-  c_2e    =  1.83
+  c_2e    =  1.80
   c_3e    =  0.32
   c_mu    =  0.09
   c_mu_d  =  0.21

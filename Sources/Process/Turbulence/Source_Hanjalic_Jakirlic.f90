@@ -61,10 +61,6 @@
   real    :: p11, p22, p33, p12, p13, p23
   real    :: phi_ij_2_11, phi_ij_2_22, phi_ij_2_33
   real    :: phi_ij_2_12, phi_ij_2_13, phi_ij_2_23
-  real    :: phi_ij_1_w_11, phi_ij_1_w_22, phi_ij_1_w_33
-  real    :: phi_ij_1_w_12, phi_ij_1_w_13, phi_ij_1_w_23
-  real    :: phi_ij_2_w_11, phi_ij_2_w_22, phi_ij_2_w_33
-  real    :: phi_ij_2_w_12, phi_ij_2_w_13, phi_ij_2_w_23
   real    :: u_k_u_m_n_k_n_m
   real    :: prod_and_coriolis, phi_ij_2, phi_ij_1_w, phi_ij_2_w, eps_h, stress
   real    :: a_, a_2, a_3
@@ -188,15 +184,15 @@
     eps_2_kin = eps % n(c) / kin_lim(c)
 
     ! P_k = 0.5 P_ii = - u_i u_k dU_i/dx_k
-    p_kin(c) = max(-( uu % n(c) * u % x(c)  &
-                    + uv % n(c) * u % y(c)  &
-                    + uw % n(c) * u % z(c)  &
-                    + uv % n(c) * v % x(c)  &
-                    + vv % n(c) * v % y(c)  &
-                    + vw % n(c) * v % z(c)  &
-                    + uw % n(c) * w % x(c)  &
-                    + vw % n(c) * w % y(c)  &
-                    + ww % n(c) * w % z(c)), TINY)
+    p_kin(c) = -( uu % n(c) * u % x(c)  &
+                + uv % n(c) * u % y(c)  &
+                + uw % n(c) * u % z(c)  &
+                + uv % n(c) * v % x(c)  &
+                + vv % n(c) * v % y(c)  &
+                + vw % n(c) * v % z(c)  &
+                + uw % n(c) * w % x(c)  &
+                + vw % n(c) * w % y(c)  &
+                + ww % n(c) * w % z(c)  )
 
     ! formula 2.4
     a11 = uu % n(c) / kin_lim(c) - TWO_THIRDS
@@ -259,8 +255,8 @@
 
       ! page 143 E
       e_ = 1. - (9./8.) * (e_2 - e_3)
-      e_ = max(e_, 0.)
-      e_ = min(e_, 1.)
+      !e_ = max(e_, 0.) ! does not influence result
+      !e_ = min(e_, 1.) ! does not influence result
       ! page 143 f_s
       f_s = 1.-(a_**0.5*e_**2.)
     end do
@@ -276,10 +272,6 @@
       n1n2 = l_sc_x(c)*l_sc_y(c) / mag
       n1n3 = l_sc_x(c)*l_sc_z(c) / mag
       n2n3 = l_sc_y(c)*l_sc_z(c) / mag
-
-      ! for formula page 164 Phi_ij,1^w
-      u_k_u_m_n_k_n_m = uu % n(c)*n1n1 +    vv % n(c)*n2n2 +    ww % n(c)*n3n3 &
-                   + 2.*uv % n(c)*n1n2 + 2.*uw % n(c)*n1n3 + 2.*vw % n(c)*n2n3
 
       ! page 165 f
       f_  = min((re_t(c)/150)**1.5, 1.)
@@ -324,70 +316,29 @@
         - 2.*omega_x*(vv%n(c)-ww%n(c))+ 2.*omega_y*uv%n(c) - 2.*omega_z*uw%n(c)
 
       ! page 164 Phi_ij,2
-      phi_ij_2_11 = -c_2 * (p11 - TWO_THIRDS*p_kin(c) )
-      phi_ij_2_22 = -c_2 * (p22 - TWO_THIRDS*p_kin(c) )
-      phi_ij_2_33 = -c_2 * (p33 - TWO_THIRDS*p_kin(c) )
-      phi_ij_2_12 = -c_2 * p12
-      phi_ij_2_13 = -c_2 * p13
-      phi_ij_2_23 = -c_2 * p23
+      phi_ij_2_11 = - c_2 * (p11 - TWO_THIRDS*p_kin(c) )
+      phi_ij_2_22 = - c_2 * (p22 - TWO_THIRDS*p_kin(c) )
+      phi_ij_2_33 = - c_2 * (p33 - TWO_THIRDS*p_kin(c) )
+      phi_ij_2_12 = - c_2 *  p12
+      phi_ij_2_13 = - c_2 *  p13
+      phi_ij_2_23 = - c_2 *  p23
 
-      ! page 164 Phi_ij,1^w
-      phi_ij_1_w_11 = c_1_w * f_w * eps_2_kin * (              &
-        u_k_u_m_n_k_n_m - 3. *                                 &
-           ( uu % n(c)*n1n1 + uv % n(c)*n1n2 + uw % n(c)*n1n3) )
+      if(name_phi .eq. 'UU' .or. &
+         name_phi .eq. 'VV' .or. &
+         name_phi .eq. 'WW') then
 
-      phi_ij_1_w_22 = c_1_w * f_w * eps_2_kin * (              &
-        u_k_u_m_n_k_n_m - 3. *                                 &
-           ( uv % n(c)*n1n2 + vv % n(c)*n2n2 + vw % n(c)*n2n3) )
+        ! for formula page 164 Phi_ij,1^w
+        u_k_u_m_n_k_n_m = uu % n(c)*n1n1 +   vv % n(c)*n2n2 +   ww % n(c)*n3n3 &
+                      + 2*uv % n(c)*n1n2 + 2*uw % n(c)*n1n3 + 2*vw % n(c)*n2n3
 
-      phi_ij_1_w_33 = c_1_w * f_w * eps_2_kin * (              &
-        u_k_u_m_n_k_n_m - 3. *                                 &
-           ( uw % n(c)*n1n3 + vw % n(c)*n2n3 + ww % n(c)*n3n3) )
-
-      phi_ij_1_w_12 = c_1_w * f_w * eps_2_kin * ( - 1.5 ) * ( &
-        uu % n(c)*n1n2 + uv % n(c)*n2n2 + uw % n(c)*n2n3 +    &
-        uv % n(c)*n1n1 + vv % n(c)*n1n2 + vw % n(c)*n1n3      )
-
-      phi_ij_1_w_13 = c_1_w * f_w * eps_2_kin * ( - 1.5 ) * ( &
-        uu % n(c)*n1n3 + uv % n(c)*n2n3 + uw % n(c)*n3n3 +    &
-        uw % n(c)*n1n1 + vw % n(c)*n1n2 + ww % n(c)*n1n3      )
-
-      phi_ij_1_w_23 = c_1_w * f_w * eps_2_kin * ( - 1.5 ) * ( &
-        uv % n(c)*n1n3 + vv % n(c)*n2n3 + vw % n(c)*n3n3 +    &
-        uw % n(c)*n1n2 + vw % n(c)*n2n2 + ww % n(c)*n2n3      )
-
-      ! page 164 for Phi_ij,2^w
-      phi_km_2_n_k_n_m =   phi_ij_2_11*n1n1  &
-                       +   phi_ij_2_33*n3n3  &
-                       +   phi_ij_2_22*n2n2  &
-                       + 2*phi_ij_2_12*n1n2  &
-                       + 2*phi_ij_2_13*n1n3  &
-                       + 2*phi_ij_2_23*n2n3
-
-      ! page 164 Phi_ij,2^w
-      phi_ij_2_w_11 = c_2_w * f_w *                                      &
-        ( phi_km_2_n_k_n_m - 1.5  *                                      &
-          2. * ( phi_ij_2_11*n1n1 + phi_ij_2_12*n1n2 + phi_ij_2_13*n1n3) )
-
-      phi_ij_2_w_22 = c_2_w * f_w *                                      &
-        ( phi_km_2_n_k_n_m - 1.5  *                                      &
-          2. * ( phi_ij_2_12*n1n2 + phi_ij_2_22*n2n2 + phi_ij_2_23*n2n3) )
-
-      phi_ij_2_w_33 = c_2_w * f_w *                                      &
-        ( phi_km_2_n_k_n_m - 1.5  *                                      &
-          2. * ( phi_ij_2_13*n1n3 + phi_ij_2_23*n2n3 + phi_ij_2_33*n3n3) )
-
-      phi_ij_2_w_12 = c_2_w * f_w * ( - 1.5 ) * (                &
-        phi_ij_2_11*n1n2 + phi_ij_2_12*n2n2 + phi_ij_2_13*n2n3 + &
-        phi_ij_2_12*n1n1 + phi_ij_2_22*n1n2 + phi_ij_2_23*n1n3   )
-
-      phi_ij_2_w_13 = c_2_w * f_w * ( - 1.5 ) * (                &
-        phi_ij_2_11*n1n3 + phi_ij_2_12*n2n3 + phi_ij_2_13*n3n3 + &
-        phi_ij_2_13*n1n1 + phi_ij_2_23*n1n2 + phi_ij_2_33*n1n3   )
-
-      phi_ij_2_w_23 = c_2_w * f_w * ( - 1.5 ) * (                &
-        phi_ij_2_13*n1n2 + phi_ij_2_23*n2n2 + phi_ij_2_33*n2n3 + &
-        phi_ij_2_12*n1n3 + phi_ij_2_22*n2n3 + phi_ij_2_23*n3n3   )
+        ! page 164 for Phi_ij,2^w
+        phi_km_2_n_k_n_m =   phi_ij_2_11*n1n1  &
+                         +   phi_ij_2_33*n3n3  &
+                         +   phi_ij_2_22*n2n2  &
+                         + 2*phi_ij_2_12*n1n2  &
+                         + 2*phi_ij_2_13*n1n3  &
+                         + 2*phi_ij_2_23*n2n3
+      end if
 
       !---------------!
       !   uu stress   !
@@ -398,9 +349,15 @@
 
         prod_and_coriolis = p11
 
-        phi_ij_2   = phi_ij_2_11
-        phi_ij_1_w = phi_ij_1_w_11
-        phi_ij_2_w = phi_ij_2_w_11
+        ! page 164 Phi_ij,1^w
+        phi_ij_1_w = c_1_w * f_w * eps_2_kin * ( u_k_u_m_n_k_n_m - 3. *        &
+          ( uu % n(c)*n1n1 + uv % n(c)*n1n2 + uw % n(c)*n1n3 )                 )
+
+        ! page 164 Phi_ij,2^w
+        phi_ij_2_w = c_2_w * f_w * ( phi_km_2_n_k_n_m - 1.5  *                 &
+          2. * ( phi_ij_2_11*n1n1 + phi_ij_2_12*n1n2 + phi_ij_2_13*n1n3 )      )
+
+        phi_ij_2 = phi_ij_2_11
 
         eps_h = eps_h_11
       end if
@@ -413,9 +370,15 @@
 
         prod_and_coriolis = p22
 
-        phi_ij_2   = phi_ij_2_22
-        phi_ij_1_w = phi_ij_1_w_22
-        phi_ij_2_w = phi_ij_2_w_22
+        ! page 164 Phi_ij,1^w
+        phi_ij_1_w = c_1_w * f_w * eps_2_kin * ( u_k_u_m_n_k_n_m - 3. *        &
+          ( uv % n(c)*n1n2 + vv % n(c)*n2n2 + vw % n(c)*n2n3 )                 )
+
+        ! page 164 Phi_ij,2^w
+        phi_ij_2_w = c_2_w * f_w * ( phi_km_2_n_k_n_m - 1.5  *                 &
+          2. * ( phi_ij_2_12*n1n2 + phi_ij_2_22*n2n2 + phi_ij_2_23*n2n3 )      )
+
+        phi_ij_2 = phi_ij_2_22
 
         eps_h = eps_h_22
       end if
@@ -428,9 +391,15 @@
 
         prod_and_coriolis = p33
 
-        phi_ij_2   = phi_ij_2_33
-        phi_ij_1_w = phi_ij_1_w_33
-        phi_ij_2_w = phi_ij_2_w_33
+        ! page 164 Phi_ij,1^w
+        phi_ij_1_w = c_1_w * f_w * eps_2_kin * ( u_k_u_m_n_k_n_m - 3. *        &
+          ( uw % n(c)*n1n3 + vw % n(c)*n2n3 + ww % n(c)*n3n3 )                 )
+
+        ! page 164 Phi_ij,2^w
+        phi_ij_2_w = c_2_w * f_w * ( phi_km_2_n_k_n_m - 1.5  *                 &
+          2. * ( phi_ij_2_13*n1n3 + phi_ij_2_23*n2n3 + phi_ij_2_33*n3n3 )      )
+
+        phi_ij_2 = phi_ij_2_33
 
         eps_h = eps_h_33
       end if
@@ -440,12 +409,22 @@
       if(name_phi .eq. 'UV') then
         ! limited stress
         stress = uv % n(c)
+        if (stress .lt. 0) stress = min(stress,-TINY)
+        if (stress .ge. 0) stress = max(stress, TINY)
 
         prod_and_coriolis = p12
 
-        phi_ij_2   = phi_ij_2_12
-        phi_ij_1_w = phi_ij_1_w_12
-        phi_ij_2_w = phi_ij_2_w_12
+        ! page 164 Phi_ij,1^w
+        phi_ij_1_w = c_1_w * f_w * eps_2_kin * ( - 1.5 ) * (    &
+          uu % n(c)*n1n2 + uv % n(c)*n2n2 + uw % n(c)*n2n3 +    &
+          uv % n(c)*n1n1 + vv % n(c)*n1n2 + vw % n(c)*n1n3      )
+
+        ! page 164 Phi_ij,2^w
+        phi_ij_2_w = c_2_w * f_w * ( - 1.5 ) * (                   &
+          phi_ij_2_11*n1n2 + phi_ij_2_12*n2n2 + phi_ij_2_13*n2n3 + &
+          phi_ij_2_12*n1n1 + phi_ij_2_22*n1n2 + phi_ij_2_23*n1n3   )
+
+        phi_ij_2 = phi_ij_2_12
 
         eps_h = eps_h_12
 
@@ -456,12 +435,22 @@
       if(name_phi .eq. 'UW') then
         ! limited stress
         stress = uw % n(c)
+        if (stress .lt. 0) stress = min(stress,-TINY)
+        if (stress .ge. 0) stress = max(stress, TINY)
 
         prod_and_coriolis = p13
 
-        phi_ij_2   = phi_ij_2_13
-        phi_ij_1_w = phi_ij_1_w_13
-        phi_ij_2_w = phi_ij_2_w_13
+        ! page 164 Phi_ij,1^w
+        phi_ij_1_w = c_1_w * f_w * eps_2_kin * ( - 1.5 ) * (    &
+          uu % n(c)*n1n3 + uv % n(c)*n2n3 + uw % n(c)*n3n3 +    &
+          uw % n(c)*n1n1 + vw % n(c)*n1n2 + ww % n(c)*n1n3      )
+
+        ! page 164 Phi_ij,2^w
+        phi_ij_2_w = c_2_w * f_w * ( - 1.5 ) * (                   &
+          phi_ij_2_11*n1n3 + phi_ij_2_12*n2n3 + phi_ij_2_13*n3n3 + &
+          phi_ij_2_13*n1n1 + phi_ij_2_23*n1n2 + phi_ij_2_33*n1n3   )
+
+        phi_ij_2 = phi_ij_2_13
 
         eps_h = eps_h_13
 
@@ -472,12 +461,22 @@
       if(name_phi .eq. 'VW') then
         ! limited stress
         stress = vw % n(c)
+        if (stress .lt. 0) stress = min(stress,-TINY)
+        if (stress .ge. 0) stress = max(stress, TINY)
 
         prod_and_coriolis = p23
 
-        phi_ij_2   = phi_ij_2_23
-        phi_ij_1_w = phi_ij_1_w_23
-        phi_ij_2_w = phi_ij_2_w_23
+        ! page 164 Phi_ij,1^w
+        phi_ij_1_w = c_1_w * f_w * eps_2_kin * ( - 1.5 ) * (    &
+          uw % n(c)*n1n2 + vw % n(c)*n2n2 + ww % n(c)*n2n3 +    &
+          uv % n(c)*n1n3 + vv % n(c)*n2n3 + vw % n(c)*n3n3      )
+
+        ! page 164 Phi_ij,2^w
+        phi_ij_2_w = c_2_w * f_w * ( - 1.5 ) * (                   &
+          phi_ij_2_13*n1n2 + phi_ij_2_23*n2n2 + phi_ij_2_33*n2n3 + &
+          phi_ij_2_12*n1n3 + phi_ij_2_22*n2n3 + phi_ij_2_23*n3n3   )
+
+        phi_ij_2 = phi_ij_2_23
 
         eps_h = eps_h_23
 
@@ -519,52 +518,52 @@
     else ! it is eps eq.
     ! page 165 second term
       dissipation_2_term = - 2 * viscosity * (                                 &
-                                                                               !
+
         uu % x(c) * u_xx(c) + uv % x(c) * v_xx(c) + uw % x(c) * w_xx(c)        &
       + uv % x(c) * u_xy(c) + vv % x(c) * v_xy(c) + vw % x(c) * w_xy(c)        &
       + uw % x(c) * u_xz(c) + vw % x(c) * v_xz(c) + ww % x(c) * w_xz(c)        &
-                                                                               !
+
       + uu % y(c) * u_xy(c) + uv % y(c) * v_xy(c) + uw % y(c) * w_xy(c)        &
       + uv % y(c) * u_yy(c) + vv % y(c) * v_yy(c) + vw % y(c) * w_yy(c)        &
       + uw % y(c) * u_yz(c) + vw % y(c) * v_yz(c) + ww % y(c) * w_yz(c)        &
-                                                                               !
+
       + uu % z(c) * u_xz(c) + uv % z(c) * v_xz(c) + uw % z(c) * w_xz(c)        &
       + uv % z(c) * u_yz(c) + vv % z(c) * v_yz(c) + vw % z(c) * w_yz(c)        &
       + uw % z(c) * u_zz(c) + vw % z(c) * v_zz(c) + ww % z(c) * w_zz(c)        &
-                                                                               !
+
       + c_3e * kin % n(c) / eps_lim(c) * (                                     &
         uu % x(c)*( u % x(c)*u_xx(c) + v % x(c)*v_xx(c) + w % x(c)*w_xx(c) )   &
       + uu % y(c)*( u % x(c)*u_xy(c) + v % x(c)*v_xy(c) + w % x(c)*w_xy(c) )   &
       + uu % z(c)*( u % x(c)*u_xz(c) + v % x(c)*v_xz(c) + w % x(c)*w_xz(c) )   &
-                                                                               !
+
       + uv % x(c)*( u % y(c)*u_xx(c) + v % y(c)*v_xx(c) + w % y(c)*w_xx(c) )   &
       + uv % y(c)*( u % y(c)*u_xy(c) + v % y(c)*v_xy(c) + w % y(c)*w_xy(c) )   &
       + uv % z(c)*( u % y(c)*u_xz(c) + v % y(c)*v_xz(c) + w % y(c)*w_xz(c) )   &
-                                                                               !
+
       + uw % x(c)*( u % z(c)*u_xx(c) + v % z(c)*v_xx(c) + w % z(c)*w_xx(c) )   &
       + uw % y(c)*( u % z(c)*u_xy(c) + v % z(c)*v_xy(c) + w % z(c)*w_xy(c) )   &
       + uw % z(c)*( u % z(c)*u_xz(c) + v % z(c)*v_xz(c) + w % z(c)*w_xz(c) )   &
-                                                                               !
+
       + uv % x(c)*( u % x(c)*u_xy(c) + v % x(c)*v_xy(c) + w % x(c)*w_xy(c) )   &
       + uv % y(c)*( u % x(c)*u_yy(c) + v % x(c)*v_yy(c) + w % x(c)*w_yy(c) )   &
       + uv % z(c)*( u % x(c)*u_yz(c) + v % x(c)*v_yz(c) + w % x(c)*w_yz(c) )   &
-                                                                               !
+
       + vv % x(c)*( u % y(c)*u_xy(c) + v % y(c)*v_xy(c) + w % y(c)*w_xy(c) )   &
       + vv % y(c)*( u % y(c)*u_yy(c) + v % y(c)*v_yy(c) + w % y(c)*w_yy(c) )   &
       + vv % z(c)*( u % y(c)*u_yz(c) + v % y(c)*v_yz(c) + w % y(c)*w_yz(c) )   &
-                                                                               !
+
       + vw % x(c)*( u % z(c)*u_xy(c) + v % z(c)*v_xy(c) + w % z(c)*w_xy(c) )   &
       + vw % y(c)*( u % z(c)*u_yy(c) + v % z(c)*v_yy(c) + w % z(c)*w_yy(c) )   &
       + vw % z(c)*( u % z(c)*u_yz(c) + v % z(c)*v_yz(c) + w % z(c)*w_yz(c) )   &
-                                                                               !
+
       + uw % x(c)*( u % x(c)*u_xz(c) + v % x(c)*v_xz(c) + w % x(c)*w_xz(c) )   &
       + uw % y(c)*( u % x(c)*u_yz(c) + v % x(c)*v_yz(c) + w % x(c)*w_yz(c) )   &
       + uw % z(c)*( u % x(c)*u_zz(c) + v % x(c)*v_zz(c) + w % x(c)*w_zz(c) )   &
-                                                                               !
+
       + vw % x(c)*( u % y(c)*u_xz(c) + v % y(c)*v_xz(c) + w % y(c)*w_xz(c) )   &
       + vw % y(c)*( u % y(c)*u_yz(c) + v % y(c)*v_yz(c) + w % y(c)*w_yz(c) )   &
       + vw % z(c)*( u % y(c)*u_zz(c) + v % y(c)*v_zz(c) + w % y(c)*w_zz(c) )   &
-                                                                               !
+
       + ww % x(c)*( u % z(c)*u_xz(c) + v % z(c)*v_xz(c) + w % z(c)*w_xz(c) )   &
       + ww % y(c)*( u % z(c)*u_yz(c) + v % z(c)*v_yz(c) + w % z(c)*w_yz(c) )   &
       + ww % z(c)*( u % z(c)*u_zz(c) + v % z(c)*v_zz(c) + w % z(c)*w_zz(c) )   &
