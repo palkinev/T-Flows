@@ -194,74 +194,74 @@
                 + vw % n(c) * w % y(c)  &
                 + ww % n(c) * w % z(c)  )
 
-    ! formula 2.4
-    a11 = uu % n(c) / kin_lim(c) - TWO_THIRDS
-    a22 = vv % n(c) / kin_lim(c) - TWO_THIRDS
-    a33 = ww % n(c) / kin_lim(c) - TWO_THIRDS
-    a12 = uv % n(c) / kin_lim(c)
-    a13 = uw % n(c) / kin_lim(c)
-    a23 = vw % n(c) / kin_lim(c)
-
-    ! page 143 A2
-    a_2   = a11**2. + a22**2. + a33**2.  &
-      + 2.*(a12**2. + a13**2. + a23**2.  )
-
-    ! page 143 A3
-    a_3 = a11**3. + a22**3. + a33**3. &
-      + 3*a12**2.*(a11+a22)           &
-      + 3*a13**2.*(a11+a33)           &
-      + 3*a23**2.*(a22+a33)           &
-      + 6*a12*a13*a23
-
-    ! page 143 A
-    a_ = 1. - (9./8.)*(a_2-a_3)
-    a_ = max(a_,0.)
-    a_ = min(a_,1.)
-
-    !---------------------------------------------------!
-    !   iterative procedure to find e_, e_2, e_3, f_s   !
-    !---------------------------------------------------!
-    ! initial value for e_ = a_
-    e_ = a_
-    f_s = 1. - sqrt(a_) * e_**2.
-
-    do iterator = 1, 6
-      ! formula 2.14
-      eps_h_11 = (1.-f_s) * TWO_THIRDS*eps % n(c) + f_s * uu % n(c)*eps_2_kin
-      eps_h_22 = (1.-f_s) * TWO_THIRDS*eps % n(c) + f_s * vv % n(c)*eps_2_kin
-      eps_h_33 = (1.-f_s) * TWO_THIRDS*eps % n(c) + f_s * ww % n(c)*eps_2_kin
-      eps_h_12 =                                    f_s * uv % n(c)*eps_2_kin
-      eps_h_13 =                                    f_s * uw % n(c)*eps_2_kin
-      eps_h_23 =                                    f_s * vw % n(c)*eps_2_kin
+    if (name_phi .ne. 'EPS') then
 
       ! formula 2.4
-      e11 = eps_h_11 / eps_lim(c) - TWO_THIRDS
-      e22 = eps_h_22 / eps_lim(c) - TWO_THIRDS
-      e33 = eps_h_33 / eps_lim(c) - TWO_THIRDS
-      e12 = eps_h_12 / eps_lim(c)
-      e13 = eps_h_13 / eps_lim(c)
-      e23 = eps_h_23 / eps_lim(c)
+      a11 = uu % n(c) / kin_lim(c) - TWO_THIRDS
+      a22 = vv % n(c) / kin_lim(c) - TWO_THIRDS
+      a33 = ww % n(c) / kin_lim(c) - TWO_THIRDS
+      a12 = uv % n(c) / kin_lim(c)
+      a13 = uw % n(c) / kin_lim(c)
+      a23 = vw % n(c) / kin_lim(c)
 
-      ! page 143 e2
-      e_2   = e11**2. + e22**2. + e33**2.  &
-        + 2.*(e12**2. + e13**2. + e23**2.  )
+      ! page 143 A2
+      a_2   = a11**2. + a22**2. + a33**2.  &
+        + 2.*(a12**2. + a13**2. + a23**2.  )
 
-      ! page 143 e3
-      e_3 = e11**3. + e22**3. + e33**3. &
-        + 3*e12**2.*(e11+e22)           &
-        + 3*e13**2.*(e11+e33)           &
-        + 3*e23**2.*(e22+e33)           &
-        + 6*e12*e13*e23
+      ! page 143 A3
+      a_3 = a11**3. + a22**3. + a33**3. &
+        + 3*a12**2.*(a11+a22)           &
+        + 3*a13**2.*(a11+a33)           &
+        + 3*a23**2.*(a22+a33)           &
+        + 6*a12*a13*a23
 
-      ! page 143 E
-      e_ = 1. - (9./8.) * (e_2 - e_3)
-      !e_ = max(e_, 0.) ! does not influence result
-      !e_ = min(e_, 1.) ! does not influence result
-      ! page 143 f_s
-      f_s = 1.-(a_**0.5*e_**2.)
-    end do
+      ! page 143 A
+      a_ = 1. - (9./8.)*(a_2-a_3)
+      a_ = max(a_,0.)
+      !a_ = min(a_,1.)
 
-    if (name_phi .ne. 'EPS') then
+      !---------------------------------------------------!
+      !   iterative procedure to find e_, e_2, e_3, f_s   !
+      !---------------------------------------------------!
+      ! initial value for e_ = a_
+      e_ = a_
+      f_s = 1. - sqrt(a_) * e_**2.
+
+      do iterator = 1, 6
+        ! formula 2.14
+        eps_h_11 = (1.-f_s) * TWO_THIRDS*eps % n(c) + f_s * uu % n(c)*eps_2_kin
+        eps_h_22 = (1.-f_s) * TWO_THIRDS*eps % n(c) + f_s * vv % n(c)*eps_2_kin
+        eps_h_33 = (1.-f_s) * TWO_THIRDS*eps % n(c) + f_s * ww % n(c)*eps_2_kin
+        eps_h_12 =                                    f_s * uv % n(c)*eps_2_kin
+        eps_h_13 =                                    f_s * uw % n(c)*eps_2_kin
+        eps_h_23 =                                    f_s * vw % n(c)*eps_2_kin
+
+        ! formula 2.4
+        e11 = eps_h_11 / eps_lim(c) - TWO_THIRDS
+        e22 = eps_h_22 / eps_lim(c) - TWO_THIRDS
+        e33 = eps_h_33 / eps_lim(c) - TWO_THIRDS
+        e12 = eps_h_12 / eps_lim(c)
+        e13 = eps_h_13 / eps_lim(c)
+        e23 = eps_h_23 / eps_lim(c)
+
+        ! page 143 e2
+        e_2   = e11**2. + e22**2. + e33**2.  &
+          + 2.*(e12**2. + e13**2. + e23**2.  )
+
+        ! page 143 e3
+        e_3 = e11**3. + e22**3. + e33**3. &
+          + 3*e12**2.*(e11+e22)           &
+          + 3*e13**2.*(e11+e33)           &
+          + 3*e23**2.*(e22+e33)           &
+          + 6*e12*e13*e23
+
+        ! page 143 E
+        e_ = 1. - (9./8.) * (e_2 - e_3)
+        !e_ = max(e_, 0.) ! does not influence result
+        !e_ = min(e_, 1.) ! does not influence result
+        ! page 143 f_s
+        f_s = 1.-(a_**0.5*e_**2.)
+      end do
 
       mag = max(l_sc_x(c)**2. + l_sc_y(c)**2. + l_sc_z(c)**2., TINY)
 
