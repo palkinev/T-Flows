@@ -344,20 +344,21 @@
       !   uu stress   !
       !---------------!
       if(name_phi .eq. 'UU') then
-        ! limited stress
+
         stress = uu % n(c)
 
         prod_and_coriolis = p11
+
+        ! page 164 Phi_ij,2
+        phi_ij_2 = phi_ij_2_11
 
         ! page 164 Phi_ij,1^w
         phi_ij_1_w = c_1_w * f_w * eps_2_kin * ( u_k_u_m_n_k_n_m - 3. *        &
           ( uu % n(c)*n1n1 + uv % n(c)*n1n2 + uw % n(c)*n1n3 )                 )
 
         ! page 164 Phi_ij,2^w
-        phi_ij_2_w = c_2_w * f_w * ( phi_km_2_n_k_n_m - 1.5  *                 &
-          2. * ( phi_ij_2_11*n1n1 + phi_ij_2_12*n1n2 + phi_ij_2_13*n1n3 )      )
-
-        phi_ij_2 = phi_ij_2_11
+        phi_ij_2_w = c_2_w * f_w * ( phi_km_2_n_k_n_m - 3. *                   &
+          ( phi_ij_2_11*n1n1 + phi_ij_2_12*n1n2 + phi_ij_2_13*n1n3 )           )
 
         eps_h = eps_h_11
       end if
@@ -365,20 +366,21 @@
       !   vv stress   !
       !---------------!
       if(name_phi .eq. 'VV') then
-        ! limited stress
+
         stress = vv % n(c)
 
         prod_and_coriolis = p22
+
+        ! page 164 Phi_ij,2
+        phi_ij_2 = phi_ij_2_22
 
         ! page 164 Phi_ij,1^w
         phi_ij_1_w = c_1_w * f_w * eps_2_kin * ( u_k_u_m_n_k_n_m - 3. *        &
           ( uv % n(c)*n1n2 + vv % n(c)*n2n2 + vw % n(c)*n2n3 )                 )
 
         ! page 164 Phi_ij,2^w
-        phi_ij_2_w = c_2_w * f_w * ( phi_km_2_n_k_n_m - 1.5  *                 &
-          2. * ( phi_ij_2_12*n1n2 + phi_ij_2_22*n2n2 + phi_ij_2_23*n2n3 )      )
-
-        phi_ij_2 = phi_ij_2_22
+        phi_ij_2_w = c_2_w * f_w * ( phi_km_2_n_k_n_m - 3. *                   &
+          ( phi_ij_2_12*n1n2 + phi_ij_2_22*n2n2 + phi_ij_2_23*n2n3 )           )
 
         eps_h = eps_h_22
       end if
@@ -386,20 +388,21 @@
       !   ww stress   !
       !---------------!
       if(name_phi .eq. 'WW') then
-        ! limited stress
+
         stress = ww % n(c)
 
         prod_and_coriolis = p33
+
+        ! page 164 Phi_ij,2
+        phi_ij_2 = phi_ij_2_33
 
         ! page 164 Phi_ij,1^w
         phi_ij_1_w = c_1_w * f_w * eps_2_kin * ( u_k_u_m_n_k_n_m - 3. *        &
           ( uw % n(c)*n1n3 + vw % n(c)*n2n3 + ww % n(c)*n3n3 )                 )
 
         ! page 164 Phi_ij,2^w
-        phi_ij_2_w = c_2_w * f_w * ( phi_km_2_n_k_n_m - 1.5  *                 &
-          2. * ( phi_ij_2_13*n1n3 + phi_ij_2_23*n2n3 + phi_ij_2_33*n3n3 )      )
-
-        phi_ij_2 = phi_ij_2_33
+        phi_ij_2_w = c_2_w * f_w * ( phi_km_2_n_k_n_m - 3. *                   &
+          ( phi_ij_2_13*n1n3 + phi_ij_2_23*n2n3 + phi_ij_2_33*n3n3 )           )
 
         eps_h = eps_h_33
       end if
@@ -407,10 +410,13 @@
       !   uv stress   !
       !---------------!
       if(name_phi .eq. 'UV') then
-        ! limited stress
+
         stress = uv % n(c)
 
         prod_and_coriolis = p12
+
+        ! page 164 Phi_ij,2
+        phi_ij_2 = phi_ij_2_12
 
         ! page 164 Phi_ij,1^w
         phi_ij_1_w = c_1_w * f_w * eps_2_kin * ( - 1.5 ) * (    &
@@ -422,8 +428,6 @@
           phi_ij_2_11*n1n2 + phi_ij_2_12*n2n2 + phi_ij_2_13*n2n3 + &
           phi_ij_2_12*n1n1 + phi_ij_2_22*n1n2 + phi_ij_2_23*n1n3   )
 
-        phi_ij_2 = phi_ij_2_12
-
         eps_h = eps_h_12
 
       end if
@@ -431,10 +435,13 @@
       !   uw stress   !
       !---------------!
       if(name_phi .eq. 'UW') then
-        ! limited stress
+
         stress = uw % n(c)
 
         prod_and_coriolis = p13
+
+        ! page 164 Phi_ij,2
+        phi_ij_2 = phi_ij_2_13
 
         ! page 164 Phi_ij,1^w
         phi_ij_1_w = c_1_w * f_w * eps_2_kin * ( - 1.5 ) * (    &
@@ -446,8 +453,6 @@
           phi_ij_2_11*n1n3 + phi_ij_2_12*n2n3 + phi_ij_2_13*n3n3 + &
           phi_ij_2_13*n1n1 + phi_ij_2_23*n1n2 + phi_ij_2_33*n1n3   )
 
-        phi_ij_2 = phi_ij_2_13
-
         eps_h = eps_h_13
 
       end if
@@ -455,7 +460,7 @@
       !   vw stress   !
       !---------------!
       if(name_phi .eq. 'VW') then
-        ! limited stress
+
         stress = vw % n(c)
 
         prod_and_coriolis = p23
@@ -470,6 +475,7 @@
           phi_ij_2_13*n1n2 + phi_ij_2_23*n2n2 + phi_ij_2_33*n2n3 + &
           phi_ij_2_12*n1n3 + phi_ij_2_22*n2n3 + phi_ij_2_23*n3n3   )
 
+        ! page 164 Phi_ij,2
         phi_ij_2 = phi_ij_2_23
 
         eps_h = eps_h_23
@@ -596,7 +602,7 @@
           if(Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL .or.  &
              Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALLFL) then
 
-            eps % n(c2) = viscosity*(kin_x(c2)**2 + kin_y(c2)**2 + kin_z(c2)**2)
+            eps % n(c2) = viscosity*(kin_x(c1)**2 + kin_y(c1)**2 + kin_z(c1)**2)
           end if ! end if of BC=wall
         end if ! end if of c2<0
       end if ! end if of c2<0
