@@ -48,7 +48,7 @@
 
   do  c = 1, grid % n_cells
 
-    ! no need to compute this for EPS -> can be improved
+    ! No need to compute this for EPS -> can be improved
     kin % n(c) = max(0.5*(uu % n(c) + vv % n(c) + ww % n(c)), TINY)
     ! P_k = 0.5 P_ii = - u_i u_k dU_i/dx_k
     p_kin(c) = -( uu % n(c) * u % x(c)  &
@@ -64,7 +64,7 @@
     ! |df22/x_j|
     mag_f22 = max( f22 % x(c)**2. + f22 % y(c)**2. + f22 % z(c)**2., TINY )
 
-    ! formula C.9 (n_i never appears individually, only as n_i * n_j)
+    ! Formula C.9 (n_i never appears individually, only as n_i * n_j)
     n1n1 = f22 % x(c)**2.        / mag_f22
     n2n2 = f22 % y(c)**2.        / mag_f22
     n3n3 = f22 % z(c)**2.        / mag_f22
@@ -76,7 +76,7 @@
     alpha3  = f22 % n(c)**3.
     eps_2_k = eps % n(c) / kin % n(c)
 
-    ! formula C.4
+    ! Formula C.4
     b11 = uu % n(c)/(2.*kin % n(c)) - ONE_THIRD 
     b22 = vv % n(c)/(2.*kin % n(c)) - ONE_THIRD
     b33 = ww % n(c)/(2.*kin % n(c)) - ONE_THIRD
@@ -84,7 +84,7 @@
     b13 = uw % n(c)/(2.*kin % n(c))    
     b23 = vw % n(c)/(2.*kin % n(c))
 
-    ! formula C.5
+    ! Formula C.5
     s11 = u % x(c) 
     s22 = v % y(c) 
     s33 = w % z(c) 
@@ -92,7 +92,7 @@
     s13 = 0.5*(u % z(c) + w % x(c))
     s23 = 0.5*(v % z(c) + w % y(c))
 
-    ! formula C.6
+    ! Formula C.6
     v12 = 0.5*(u % y(c) - v % x(c)) - omega_z
     !v21 = -v12
     v13 = 0.5*(u % z(c) - w % x(c)) + omega_y
@@ -103,15 +103,15 @@
     ! (C.3 1st term without "-" and *b_ij)
     term_c3_1 = g1*eps % n(c) + g1_star*p_kin(c)
 
-    ! for formula C.3 (b_kl_b_kl never appears without sqrt)
+    ! For formula C.3 (b_kl_b_kl never appears without sqrt)
     b_kl_b_kl_sq = sqrt(b11**2. + b22**2. + b33**2. &
       + 2.*(b12**2. + b13**2. + b23**2.))
 
-    ! for formula C.3
+    ! For formula C.3
     b_lm_s_lm = b11*s11 + b22*s22 + b33*s33 &
       + 2.*(b12*s12 + b13*s13 + b23*s23)
 
-    ! for formula C.7
+    ! For formula C.7
     u_k_u_l_n_k_n_l = uu % n(c)*n1n1 +    vv % n(c)*n2n2 +    ww % n(c)*n3n3 + &
                    2.*uv % n(c)*n1n2 + 2.*uw % n(c)*n1n3 + 2.*vw % n(c)*n2n3
 
@@ -119,16 +119,16 @@
     !   uu stress   !
     !---------------!
     if (name_phi .eq. 'UU') then
-      ! limited stress
+      ! Limited stress
       stress = max(uu % n(c), TINY)
 
-      ! formula C.7
+      ! Formula C.7
       phi_wall = - 5.*eps_2_k * (                                 &
         2.*uu % n(c)*n1n1 + 2.*uv % n(c)*n1n2 + 2.*uw % n(c)*n1n3 &
         - 0.5*u_k_u_l_n_k_n_l*(n1n1 + 1.)                         &
         - stress) ! this extra term is substracted from A later
       
-      ! formula C.3 (without C4 1st term)
+      ! Formula C.3 (without C4 1st term)
       phi_hom = term_c3_1 * ONE_THIRD +                                  &
         ((g3 - g3_star*b_kl_b_kl_sq)*s11 +                               &
         g4*(2.*( b11*s11 + b12*s12 + b13*s13) - TWO_THIRDS*b_lm_s_lm ) + &
@@ -139,7 +139,7 @@
         -2.*(uu % n(c)*u % x(c) + uv % n(c)*u % y(c) + uw % n(c)*u % z(c)) &
         -2.*omega_y*2.*uw % n(c) + 2.*omega_z*2.*uv % n(c)
 
-      ! left hand side (C.11 delta_ij)
+      ! Left hand side (C.11 delta_ij)
       A % val(A % dia(c)) =  A % val(A % dia(c)) + grid % vol(c) * &
         TWO_THIRDS * alpha3 * eps % n(c) / stress
 
@@ -148,16 +148,16 @@
     !---------------!
     elseif (name_phi .eq. 'VV') then
 
-      ! limited stress
+      ! Limited stress
       stress = max(vv % n(c), TINY)
 
-      ! formula C.7
+      ! Formula C.7
       phi_wall = - 5.*eps_2_k * (                                 &
         2.*uv % n(c)*n1n2 + 2.*vv % n(c)*n2n2 + 2.*vw % n(c)*n2n3 &
         - 0.5*u_k_u_l_n_k_n_l*(n2n2 + 1.)                         &
         - stress) ! this extra term is substracted from A later
 
-      ! formula C.3 (without C4 1st term)
+      ! Formula C.3 (without C4 1st term)
       phi_hom = term_c3_1 * ONE_THIRD +                                  &
         ((g3 - g3_star*b_kl_b_kl_sq)*s22 +                               &
         g4*(2.*( b12*s12 + b22*s22 + b23*s23) - TWO_THIRDS*b_lm_s_lm ) + &
@@ -168,7 +168,7 @@
         -2.*(uv % n(c)*v % x(c) + vv % n(c)*v % y(c) + vw % n(c)*v % z(c)) &
         -2.*omega_x*2.*vw % n(c) + 2.*omega_z*2.*uw % n(c)
 
-      ! left hand side (C.11 delta_ij)
+      ! Left hand side (C.11 delta_ij)
       A % val(A % dia(c)) =  A % val(A % dia(c)) + grid % vol(c) * &
         TWO_THIRDS * alpha3 * eps % n(c) / stress
     !---------------!
@@ -176,16 +176,16 @@
     !---------------!
     elseif (name_phi .eq. 'WW') then
 
-      ! limited stress
+      ! Limited stress
       stress = max(ww % n(c), TINY)
 
-      ! formula C.7
+      ! Formula C.7
       phi_wall = - 5.*eps_2_k * (                                 &
         2.*uw % n(c)*n1n3 + 2.*vw % n(c)*n2n3 + 2.*ww % n(c)*n3n3 &
         - 0.5*u_k_u_l_n_k_n_l*(n3n3 + 1.)                         &
         - stress) ! this extra term is substracted from A later
 
-      ! formula C.3 (without C4 1st term)
+      ! Formula C.3 (without C4 1st term)
       phi_hom = term_c3_1 * ONE_THIRD +                                 &
         ((g3 - g3_star*b_kl_b_kl_sq)*s33 +                              &
         g4*(2.*( b13*s13 + b23*s23 + b33*s33) - TWO_THIRDS*b_lm_s_lm) + &
@@ -196,7 +196,7 @@
         -2.*(uw % n(c)*w % x(c) + vw % n(c)*w % y(c) + ww % n(c)*w % z(c)) &
         -2.*omega_x*2.*vw % n(c) + 2.*omega_y*2.*uw % n(c)
 
-      ! left hand side (C.11 delta_ij)
+      ! Left hand side (C.11 delta_ij)
       A % val(A % dia(c)) =  A % val(A % dia(c)) + grid % vol(c) * &
         TWO_THIRDS * alpha3 * eps % n(c) / stress
     !---------------!
@@ -204,19 +204,19 @@
     !---------------!
     elseif (name_phi .eq. 'UV') then
 
-      ! limited stress
+      ! Limited stress
       stress = uv % n(c)
       if (stress .lt. 0) stress = min(stress,-TINY)
       if (stress .ge. 0) stress = max(stress, TINY)
 
-      ! formula C.7
+      ! Formula C.7
       phi_wall = - 5.*eps_2_k * (                           &
         uu % n(c)*n1n2 + uv % n(c)*n2n2 + uw % n(c)*n2n3 +  &
         uv % n(c)*n1n1 + vv % n(c)*n1n2 + vw % n(c)*n1n3    &
         - 0.5*u_k_u_l_n_k_n_l*n1n2                          &
         - stress) ! this extra term is substracted from A later
 
-      ! formula C.3 (without C4 1st term)
+      ! Formula C.3 (without C4 1st term)
       phi_hom = &
         ((g3 - g3_star*b_kl_b_kl_sq)*s12  +  &
         g4*( b11*s12 + b12*s22 + b13*s23  +  &
@@ -234,19 +234,19 @@
     !---------------!
     elseif (name_phi .eq. 'UW') then
 
-      ! limited stress
+      ! Limited stress
       stress = uw % n(c)
       if (stress .lt. 0) stress = min(stress,-TINY)
       if (stress .ge. 0) stress = max(stress, TINY)
 
-      ! formula C.7
+      ! Formula C.7
       phi_wall = - 5.*eps_2_k * (                           &
         uu % n(c)*n1n3 + uv % n(c)*n2n3 + uw % n(c)*n3n3 +  &
         uw % n(c)*n1n1 + vw % n(c)*n1n2 + ww % n(c)*n1n3    &
         - 0.5*u_k_u_l_n_k_n_l*n1n3                          &
         - stress) ! this extra term is substracted from A later
 
-      ! formula C.3 (without C4 1st term)
+      ! Formula C.3 (without C4 1st term)
       phi_hom = &
         ((g3 - g3_star*b_kl_b_kl_sq)*s13  +  &
         g4*( b11*s13 + b12*s23 + b13*s33  +  &
@@ -264,19 +264,19 @@
     !---------------!
     elseif (name_phi .eq. 'VW') then
 
-      ! limited stress
+      ! Limited stress
       stress = vw % n(c)
       if (stress .lt. 0) stress = min(stress,-TINY)
       if (stress .ge. 0) stress = max(stress, TINY)
 
-      ! formula C.7
+      ! Formula C.7
       phi_wall = - 5.*eps_2_k * (                          &
         uv % n(c)*n1n3 + vv % n(c)*n2n3 + vw % n(c)*n3n3 + &
         uw % n(c)*n1n2 + vw % n(c)*n2n2 + ww % n(c)*n2n3   &
         - 0.5*u_k_u_l_n_k_n_l*n2n3                         &
         - stress) ! this extra term is substracted from A later
 
-      ! formula C.3 (without C4 1st term)
+      ! Formula C.3 (without C4 1st term)
       phi_hom = &
         ((g3 - g3_star*b_kl_b_kl_sq)*s23  + &
         g4*( b12*s13 + b22*s23 + b23*s33  + &
@@ -292,12 +292,12 @@
     !-------------------------------------!
     !   repeating part for all stresses   !
     !-------------------------------------!
-    ! formula C.1
+    ! Formula C.1
     b(c) = b(c) + grid % vol(c) * ( & !
       max(prod_and_coriolis,0.) & ! P_ij + G_ij, if > 0.
       + (1. - alpha3)*phi_wall + alpha3*phi_hom & ! C.2
       )
-    ! left hand side
+    ! Left hand side
     A % val(A % dia(c)) =  A % val(A % dia(c)) + grid % vol(c) * (  &
       + term_c3_1/(2.*kin % n(c)) & ! from C.3 and C.4 1st terms
       - min(prod_and_coriolis,0.)/stress +  & ! (P_ij + G_ij) / u_iu_j, if < 0

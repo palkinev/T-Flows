@@ -341,7 +341,7 @@
 
         call Compute_Stresses(grid, dt, ini, eps)
 
-        call Calculate_Vis_T_Rsm(grid)
+        call Calculate_Vis_T_Rsm
 
         if(heat_transfer .eq. YES) then
           call Calculate_Heat_Flux(grid)

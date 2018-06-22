@@ -33,22 +33,20 @@
 !   Thermal cap.  capacity[m^2/(s^2*K)]| Therm. conductivity     [kg*m/(s^3*K)]!
 !------------------------------------------------------------------------------!
 
-  call Calculate_shear_And_Vorticity(grid)
+  call Calculate_Shear_And_Vorticity(grid)
 
   if(turbulence_model .eq. HANJALIC_JAKIRLIC) then
+
+    call Time_And_Length_Scale(grid)
+
     do c = 1, grid % n_cells
-      kin % n(c) = 0.5*max(uu % n(c) + vv % n(c) + ww % n(c), TINY)
 
-      cmu_mod = max(-(  uu % n(c) * u % x(c)               &
-                      + vv % n(c) * v % y(c)               &
-                      + ww % n(c) * w % z(c)               &
-                      + uv % n(c) * (v % x(c) + u % y(c))  &
-                      + uw % n(c) * (u % z(c) + w % x(c))  &
-                      + vw % n(c) * (v % z(c) + w % y(c))) &
-        / max(kin % n(c)**2. / ( eps_tot(c) + TINY) * shear(c)**2., TINY), 0.0)
+      cmu_mod = p_kin(c) &
+        / max(kin % n(c)**2 / eps_tot(c) * shear(c)**2, TINY)
 
-      cmu_mod = min(0.12, cmu_mod) 
-      vis_t(c) = cmu_mod * density * kin % n(c)**2. / ( eps_tot(c) + TINY)
+      cmu_mod = min(0.12, cmu_mod)
+
+      vis_t(c) = cmu_mod * density * kin % n(c)**2 / eps_tot(c)
     end do 
   else if(turbulence_model .eq. REYNOLDS_STRESS) then
     do c = 1, grid % n_cells
@@ -61,10 +59,10 @@
                       + uv % n(c) * (v % x(c) + u % y(c))  &
                       + uw % n(c) * (u % z(c) + w % x(c))  &
                       + vw % n(c) * (v % z(c) + w % y(c))) &
-               / max(kin % n(c)**2. / eps % n(c) * shear(c)**2., TINY), 0.0)
+               / max(kin % n(c)**2 / eps % n(c) * shear(c)**2, TINY), 0.0)
 
       cmu_mod = min(0.12,cmu_mod)
-      vis_t(c) = cmu_mod * density * kin % n(c)**2. / (eps % n(c) + TINY)
+      vis_t(c) = cmu_mod * density * kin % n(c)**2 / (eps % n(c) + TINY)
     end do
   end if
 

@@ -320,9 +320,9 @@
   !------------------------------!
   if(turbulence_model_variant .ne. STABILIZED) then
     if(phi % name .eq. 'EPS') then
-      c_mu_d = 0.18        
+      c_mu_d = c_eps
     else
-      c_mu_d = 0.22
+      c_mu_d = c_s
     end if 
     if(turbulence_model .eq. HANJALIC_JAKIRLIC) then        
       do c = 1, grid % n_cells
