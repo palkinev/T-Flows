@@ -153,7 +153,7 @@
             i=Key_Ind('UW', keys,nks);prof(k,0)=uw_def; uw %n(c)=prof(k,i)
             i=Key_Ind('VW', keys,nks);prof(k,0)=vw_def; vw %n(c)=prof(k,i)
             i=Key_Ind('EPS',keys,nks);prof(k,0)=eps_def;eps%n(c)=prof(k,i)
-            if (turbulence_model .ne. HANJALIC_JAKIRLIC) then
+            if (turbulence_model .eq. REYNOLDS_STRESS) then
               i=Key_Ind('F22',keys,nks);prof(k,0)=f22_def;f22%n(c)=prof(k,i)
             end if
           end if        

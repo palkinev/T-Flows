@@ -28,8 +28,6 @@
   real, allocatable :: r_cell_21(:), r_cell_22(:), r_cell_23(:), r_cell_24(:)
   real, allocatable :: r_cell_25(:), r_cell_26(:), r_cell_27(:), r_cell_28(:)
   real, allocatable :: r_cell_29(:), r_cell_30(:)
-  ! Real; 31 - 31
-  real, allocatable :: r_cell_31(:)
 
   ! Integer; 01 - 10
   integer, allocatable :: i_cell_01(:), i_cell_02(:), i_cell_03(:)

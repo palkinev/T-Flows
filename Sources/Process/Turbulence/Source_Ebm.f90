@@ -204,10 +204,7 @@
     !---------------!
     elseif (name_phi .eq. 'UV') then
 
-      ! Limited stress
       stress = uv % n(c)
-      if (stress .lt. 0) stress = min(stress,-TINY)
-      if (stress .ge. 0) stress = max(stress, TINY)
 
       ! Formula C.7
       phi_wall = - 5.*eps_2_k * (                           &
@@ -234,10 +231,7 @@
     !---------------!
     elseif (name_phi .eq. 'UW') then
 
-      ! Limited stress
       stress = uw % n(c)
-      if (stress .lt. 0) stress = min(stress,-TINY)
-      if (stress .ge. 0) stress = max(stress, TINY)
 
       ! Formula C.7
       phi_wall = - 5.*eps_2_k * (                           &
@@ -264,10 +258,7 @@
     !---------------!
     elseif (name_phi .eq. 'VW') then
 
-      ! Limited stress
       stress = vw % n(c)
-      if (stress .lt. 0) stress = min(stress,-TINY)
-      if (stress .ge. 0) stress = max(stress, TINY)
 
       ! Formula C.7
       phi_wall = - 5.*eps_2_k * (                          &
@@ -292,6 +283,10 @@
     !-------------------------------------!
     !   repeating part for all stresses   !
     !-------------------------------------!
+    ! Limited stress
+    if (stress .lt. 0) stress = min(stress,-TINY)
+    if (stress .ge. 0) stress = max(stress, TINY)
+
     ! Formula C.1
     b(c) = b(c) + grid % vol(c) * ( & !
       max(prod_and_coriolis,0.) & ! P_ij + G_ij, if > 0.

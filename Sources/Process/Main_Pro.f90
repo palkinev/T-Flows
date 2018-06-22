@@ -313,7 +313,7 @@
         ! Update the values at boundaries
         call Update_Boundary_Values(grid)
 
-        call Time_And_Length_Scale(grid)
+        call Time_And_Length_Scale(grid) ! ???
 
         call Grad_Mod_For_Phi(grid, u % n, 1, u % x,.true.)  ! dU/dx
         call Grad_Mod_For_Phi(grid, u % n, 2, u % y,.true.)  ! dU/dy

@@ -144,8 +144,8 @@
     n_copy_sub = 0
     write(9,'(A30)') '# Number of physical boundary cells:'
     write(9,'(I8)')  n_bnd_cells_sub   
-    do subo=1,n_sub
-      if(subo /= sub) then
+    do subo = 1, n_sub
+      if(subo .ne. sub) then
         nbb_s(subo)=n_buff_sub+1
 
         ! Faces inside the domain
@@ -242,8 +242,8 @@
     print *, '#=====================================' 
     print *, '# Subdomain   ', sub
     print *, '# Buffer size ', n_buff_sub
-    do subo=1,n_sub
-      if(subo /= sub) then
+    do subo = 1, n_sub
+      if(subo .ne. sub) then
         print '(a,i9,a,3i9)', ' # Connections with ', subo ,' : ',  &
           nbb_e(subo)-nbb_s(subo)+1,                                &
           n_bnd_cells_sub+nbb_s(subo),                              &

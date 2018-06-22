@@ -49,6 +49,5 @@
   allocate(r_cell_28(-nb:nc));   r_cell_28 = 0.0;   if(n .eq. 28) return
   allocate(r_cell_29(-nb:nc));   r_cell_29 = 0.0;   if(n .eq. 29) return
   allocate(r_cell_30(-nb:nc));   r_cell_30 = 0.0;   if(n .eq. 30) return
-  allocate(r_cell_31(-nb:nc));   r_cell_31 = 0.0;   if(n .eq. 31) return
 
   end subroutine

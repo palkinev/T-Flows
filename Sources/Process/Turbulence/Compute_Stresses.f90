@@ -241,8 +241,8 @@
 
     ! Total (exact) diffusive flux plus turb. diffusion
     Fex = vis_eff * (  phix_f * grid % sx(s)  &
-                    + phiy_f * grid % sy(s)  &
-                    + phiz_f * grid % sz(s) ) 
+                     + phiy_f * grid % sy(s)  &
+                     + phiz_f * grid % sz(s) ) 
 
     a0 = vis_eff * f_coef(s)
 
@@ -527,25 +527,25 @@
   if( phi % name .eq. 'EPS' )  &
     call Info_Mod_Iter_Fill_At(4, 4, phi % name, niter, phi % res)
 
-  if(phi % name .eq. 'EPS') then
-    do c= 1, grid % n_cells
-      phi % n(c) = phi % n(c) 
-     if( phi % n(c) < 0.) then
-       phi % n(c) = phi % o(c)
-     end if
-    end do
-  end if
-
-  if(phi % name .eq. 'UU' .or.  &
-     phi % name .eq. 'VV' .or.  &
-     phi % name .eq. 'WW') then
-    do c = 1, grid % n_cells
-      phi % n(c) = phi % n(c) 
-      if(phi % n(c) < 0.) then
-        phi % n(c) = phi % o(c)
-      end if
-    end do
-  end if
+!  if(phi % name .eq. 'EPS') then
+!    do c= 1, grid % n_cells
+!      phi % n(c) = phi % n(c) 
+!     if( phi % n(c) < 0.) then
+!       phi % n(c) = phi % o(c)
+!     end if
+!    end do
+!  end if
+!
+!  if(phi % name .eq. 'UU' .or.  &
+!     phi % name .eq. 'VV' .or.  &
+!     phi % name .eq. 'WW') then
+!    do c = 1, grid % n_cells
+!      phi % n(c) = phi % n(c) 
+!      if(phi % n(c) < 0.) then
+!        phi % n(c) = phi % o(c)
+!      end if
+!    end do
+!  end if
 
   call Comm_Mod_Exchange(grid, phi % n)
 

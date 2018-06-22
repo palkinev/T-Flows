@@ -133,7 +133,7 @@
         phi % d_o(c1) = phi % d_o(c1) + (phi % n(c2)-phi % n(c1))*a0   
         phi % d_o(c2) = phi % d_o(c2) - (phi % n(c2)-phi % n(c1))*a0    
       else
-        if(Grid_Mod_Bnd_Cond_Type(grid,c2) /= SYMMETRY) then
+        if(Grid_Mod_Bnd_Cond_Type(grid,c2) .ne. SYMMETRY) then
           phi % d_o(c1) = phi % d_o(c1) + (phi % n(c2)-phi % n(c1))*a0   
         end if 
       end if 

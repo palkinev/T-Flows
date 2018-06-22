@@ -162,7 +162,7 @@
     call Read_Backup_Variable(fh, d, 'eps', eps)
 
     ! F22
-    if(turbulence_model .ne. HANJALIC_JAKIRLIC) then
+    if(turbulence_model .eq. REYNOLDS_STRESS) then
       call Read_Backup_Variable(fh, d, 'f22',  f22)
     end if
 

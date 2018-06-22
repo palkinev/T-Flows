@@ -80,8 +80,8 @@
     end do
 
     ! Faces 3/3: buffer faces; browse in the same was as for buffers!!!
-    do subo=1,n_sub
-      if(subo /= sub) then
+    do subo = 1, n_sub
+      if(subo .ne. sub) then
 
         do s = 1, grid % n_faces
           c1 = grid % faces_c(1,s)  
