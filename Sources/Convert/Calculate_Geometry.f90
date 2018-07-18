@@ -135,6 +135,15 @@
     end do
   end do
 
+  print *,'x:'
+  print *, (grid % xc(c), c = 1, grid % n_cells)
+  print *,'y:'
+  print *, (grid % yc(c), c = 1, grid % n_cells)
+  print *,'z:'
+  print *, (grid % zc(c), c = 1, grid % n_cells)
+  stop
+
+
   print *, '# Cell centers calculated !'
 
   !-----------------------------------------------------!
@@ -146,9 +155,9 @@
   !-----------------------------------------------------!
   do s = 1, grid % n_faces
     do n = 1, grid % faces_n_nodes(s)    ! for quadrilateral an triangular faces
-      xt(n)=grid % xn(grid % faces_n(n,s))
-      yt(n)=grid % yn(grid % faces_n(n,s))
-      zt(n)=grid % zn(grid % faces_n(n,s))
+      xt(n) = grid % xn(grid % faces_n(n,s))
+      yt(n) = grid % yn(grid % faces_n(n,s))
+      zt(n) = grid % zn(grid % faces_n(n,s))
     end do                       
 
     ! Cell side components
@@ -214,8 +223,8 @@
     c2 = grid % faces_c(2,s)
 
     sur_tot = sqrt(  grid % sx(s)*grid % sx(s)  &
-                  + grid % sy(s)*grid % sy(s)  &
-                  + grid % sz(s)*grid % sz(s) )
+                   + grid % sy(s)*grid % sy(s)  &
+                   + grid % sz(s)*grid % sz(s) )
 
     if(c2  < 0) then
       t = (   grid % sx(s)*(grid % xf(s) - grid % xc(c1))        &
@@ -428,8 +437,8 @@
   ymax = -HUGE
   zmax = -HUGE
 
-  b_coor=0.0
-  b_face=0
+  b_coor = 0.
+  b_face = 0
 
   c = 0
 
@@ -437,7 +446,7 @@
   !   No rotation   !
   !-----------------!
   if(option .eq. 1) then 
-    do s=1,grid % n_faces
+    do s = 1, grid % n_faces
       c2 = grid % faces_c(2,s)
       if(c2 < 0) then
         if(grid % bnd_cond % color(c2) .eq. color_per) then
@@ -455,7 +464,8 @@
         end if
       end if
     end do
-    call Sort_Real_Carry_Int(b_coor, b_face, c, 2)
+    !call Sort_Real_Carry_Int(b_coor, b_face, c, 2)
+    call Sort_Real_Carry_Int_Heapsort(b_coor, b_face, c)
   end if
 
   !-------------------!
@@ -463,7 +473,7 @@
   !-------------------!
   if(option .eq. 2) then 
     c_max = 0
-    do s=1,grid % n_faces
+    do s = 1, grid % n_faces
       c2 = grid % faces_c(2,s)
       if(c2 < 0) then
         if(grid % bnd_cond % color(c2) .eq. color_per) then
@@ -483,7 +493,7 @@
     per_max = -HUGE
     per_min =  HUGE 
 
-    do s=1,grid % n_faces
+    do s = 1, grid % n_faces
       c2 = grid % faces_c(2,s)
       if(c2 < 0) then
         if(grid % bnd_cond % color(c2) .eq. color_per) then
@@ -498,7 +508,7 @@
     end do
     per_max = 0.5*(per_max + per_min)
 
-    do s=1,grid % n_faces
+    do s = 1, grid % n_faces
 
       c2 = grid % faces_c(2,s)
       if(c2 < 0) then
@@ -514,7 +524,7 @@
               hh = hh + 1
               b_coor(hh) = hh
               b_face(hh) = s
-              do ss=1,grid % n_faces
+              do ss = 1, grid % n_faces
                 cc2 = grid % faces_c(2,ss)
                 if(cc2 < 0) then
                   if(grid % bnd_cond % color(cc2) .eq. color_per) then 
@@ -542,7 +552,7 @@
               hh = hh + 1
               b_coor(hh) = hh
               b_face(hh) = s
-              do ss=1,grid % n_faces
+              do ss = 1, grid % n_faces
                 cc2 = grid % faces_c(2,ss)
                 if(cc2 < 0) then
                   if(grid % bnd_cond % color(cc2) .eq. color_per) then 
@@ -573,7 +583,7 @@
               hh = hh + 1
               b_coor(hh) = hh
               b_face(hh) = s
-              do ss=1,grid % n_faces
+              do ss = 1, grid % n_faces
                 cc2 = grid % faces_c(2,ss)
                 if(cc2 < 0) then
                   if(grid % bnd_cond % color(cc2) .eq. color_per) then
@@ -619,7 +629,8 @@
     deallocate(yspr)
     deallocate(zspr)
 
-    call Sort_Real_Carry_Int(b_coor, b_face, c, 2)
+    !call Sort_Real_Carry_Int(b_coor, b_face, c, 2)
+    call Sort_Real_Carry_Int_Heapsort(b_coor, b_face, c)
   end if  ! for option .eq. 2
 
   do s = 1, c/2
@@ -733,9 +744,9 @@
         if(grid % faces_n_nodes(s) .eq. 4) then
 
           ! Coordinates of the shadow face
-          xs2=grid % xf(face_copy(s))
-          ys2=grid % yf(face_copy(s))
-          zs2=grid % zf(face_copy(s))
+          xs2 = grid % xf(face_copy(s))
+          ys2 = grid % yf(face_copy(s))
+          zs2 = grid % zf(face_copy(s))
 
           ! Add shadow faces
           new_face_1 = grid % n_faces+grid % n_sh-1
@@ -978,9 +989,9 @@
                                    ' % complete...'
       endif
       do b = 1, n_wall_colors
-        do c2=-1,-grid % n_bnd_cells,-1
+        do c2 = -1, -grid % n_bnd_cells, -1
           if(grid % bnd_cond % color(c2) .eq. wall_colors(b)) then
-            grid % wall_dist(c1)=min(grid % wall_dist(c1),                                      &
+            grid % wall_dist(c1) = min(grid % wall_dist(c1),                &
             Distance_Squared(grid % xc(c1), grid % yc(c1), grid % zc(c1),   &
                              grid % xc(c2), grid % yc(c2), grid % zc(c2)))
           end if
