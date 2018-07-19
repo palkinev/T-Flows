@@ -66,7 +66,7 @@
   call Comm_Mod_Exchange(grid, w % n)
   call Comm_Mod_Exchange(grid, shear)
 
-  do c =1, grid % n_cells
+  do c = 1, grid % n_cells
     u_a   = 0.0
     v_a   = 0.0
     w_a   = 0.0
@@ -193,8 +193,8 @@
     m_33 = l_f**2 * shear_test(c) * w % z(c) - l_g**2 * m_33_f(c) 
 
     m_12 = l_f**2 * shear_test(c) * .5*(u % y(c)+v % x(c)) - l_g**2 * m_12_f(c)
-    m_13 = l_f**2 * shear_test(c) * .5*(u % z(c)+w % x(c)) - l_g**2 * m_13_f(c) 
-    m_23 = l_f**2 * shear_test(c) * .5*(v % z(c)+w % y(c)) - l_g**2 * m_23_f(c)  
+    m_13 = l_f**2 * shear_test(c) * .5*(u % z(c)+w % x(c)) - l_g**2 * m_13_f(c)
+    m_23 = l_f**2 * shear_test(c) * .5*(v % z(c)+w % y(c)) - l_g**2 * m_23_f(c)
 
     m_dot_m = m_11**2 + m_22**2 + m_33**2 + 2.0 * (m_12**2 + m_13**2 + m_23**2) 
  

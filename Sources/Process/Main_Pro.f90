@@ -316,21 +316,19 @@
         ! Update the values at boundaries
         call Update_Boundary_Values(grid)
 
-        if(turbulence_model .eq. REYNOLDS_STRESS) then
-          call Time_And_Length_Scale(grid)
-        end if
+        call Time_And_Length_Scale(grid) ! ???
 
-        call Grad_Mod_For_Phi(grid, u % n, 1, u % x,.true.)    ! dU/dx
-        call Grad_Mod_For_Phi(grid, u % n, 2, u % y,.true.)    ! dU/dy
-        call Grad_Mod_For_Phi(grid, u % n, 3, u % z,.true.)    ! dU/dz
+        call Grad_Mod_For_Phi(grid, u % n, 1, u % x,.true.)  ! dU/dx
+        call Grad_Mod_For_Phi(grid, u % n, 2, u % y,.true.)  ! dU/dy
+        call Grad_Mod_For_Phi(grid, u % n, 3, u % z,.true.)  ! dU/dz
 
-        call Grad_Mod_For_Phi(grid, v % n, 1, v % x,.true.)    ! dV/dx
-        call Grad_Mod_For_Phi(grid, v % n, 2, v % y,.true.)    ! dV/dy
-        call Grad_Mod_For_Phi(grid, v % n, 3, v % z,.true.)    ! dV/dz
+        call Grad_Mod_For_Phi(grid, v % n, 1, v % x,.true.)  ! dV/dx
+        call Grad_Mod_For_Phi(grid, v % n, 2, v % y,.true.)  ! dV/dy
+        call Grad_Mod_For_Phi(grid, v % n, 3, v % z,.true.)  ! dV/dz
 
-        call Grad_Mod_For_Phi(grid, w % n, 1, w % x,.true.)    ! dW/dx
-        call Grad_Mod_For_Phi(grid, w % n, 2, w % y,.true.)    ! dW/dy
-        call Grad_Mod_For_Phi(grid, w % n, 3, w % z,.true.)    ! dW/dz
+        call Grad_Mod_For_Phi(grid, w % n, 1, w % x,.true.)  ! dW/dx
+        call Grad_Mod_For_Phi(grid, w % n, 2, w % y,.true.)  ! dW/dy
+        call Grad_Mod_For_Phi(grid, w % n, 3, w % z,.true.)  ! dW/dz
 
         call Compute_Stresses(grid, dt, ini, uu)
         call Compute_Stresses(grid, dt, ini, vv)

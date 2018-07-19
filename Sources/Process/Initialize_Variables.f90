@@ -144,15 +144,18 @@
             i=Key_Ind('VIS',keys,nks); prof(k,0)=vis_def; vis%n(c)=prof(k,i)
           end if
 
-          if(turbulence_model .eq. REYNOLDS_STRESS) then
+          if(turbulence_model .eq. REYNOLDS_STRESS .or. &
+             turbulence_model .eq. HANJALIC_JAKIRLIC) then
             i=Key_Ind('UU', keys,nks);prof(k,0)=uu_def; uu %n(c)=prof(k,i)
             i=Key_Ind('VV', keys,nks);prof(k,0)=vv_def; vv %n(c)=prof(k,i)
             i=Key_Ind('WW', keys,nks);prof(k,0)=ww_def; ww %n(c)=prof(k,i)
             i=Key_Ind('UV', keys,nks);prof(k,0)=uv_def; uv %n(c)=prof(k,i)
             i=Key_Ind('UW', keys,nks);prof(k,0)=uw_def; uw %n(c)=prof(k,i)
             i=Key_Ind('VW', keys,nks);prof(k,0)=vw_def; vw %n(c)=prof(k,i)
-            i=Key_Ind('F22',keys,nks);prof(k,0)=f22_def;f22%n(c)=prof(k,i)
             i=Key_Ind('EPS',keys,nks);prof(k,0)=eps_def;eps%n(c)=prof(k,i)
+            if (turbulence_model .eq. REYNOLDS_STRESS) then
+              i=Key_Ind('F22',keys,nks);prof(k,0)=f22_def;f22%n(c)=prof(k,i)
+            end if
           end if        
 
         end do ! c = 1, grid % n_cells

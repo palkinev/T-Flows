@@ -143,8 +143,8 @@
   !----------------------------!
   !   Reynolds stress models   !
   !----------------------------!
-  if(turbulence_model .eq. REYNOLDS_STRESS .or.  &                          
-     turbulence_model .eq. HANJALIC_JAKIRLIC) then                          
+  if(turbulence_model .eq. REYNOLDS_STRESS .or.  &
+     turbulence_model .eq. HANJALIC_JAKIRLIC) then
 
     ! Reynolds stresses
     call Write_Backup_Variable(fh, d, 'uu',  uu)
@@ -158,7 +158,7 @@
     call Write_Backup_Variable(fh, d, 'eps', eps)
 
     ! F22
-    if(turbulence_model .eq. HANJALIC_JAKIRLIC) then
+    if(turbulence_model .eq. REYNOLDS_STRESS) then
       call Write_Backup_Variable(fh, d, 'f22',  f22)
     end if
 

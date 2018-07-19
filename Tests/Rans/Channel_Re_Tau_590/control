@@ -4,11 +4,12 @@
 
  PROBLEM_NAME            chan
  PROBLEM_TYPE            channel
-
  HEAT_TRANSFER           yes
 
- PRESSURE_DROPS         0.0036  0.0  0.0
- MASS_FLOW_RATES        1.16    0.0  0.0
+# LOAD_BACKUP_NAME   chan-ts002000.backup
+
+ PRESSURE_DROPS          0.0036  0.0  0.0
+ MASS_FLOW_RATES         1.16    0.0  0.0
 
 #---------------
 # Time stepping
@@ -18,8 +19,6 @@
  NUMBER_OF_TIME_STEPS    4000
  RESULTS_SAVE_INTERVAL    500
  BACKUP_SAVE_INTERVAL     100
-
-# LOAD_BACKUP_NAME   chan-ts002000.backup
 
 #-------------------
 # Monitoring points 

@@ -21,13 +21,13 @@
   coord_id = coord
  
   ! Get info about coordinate coord_id
-  call Cg_Coord_Info_F(file_id,          &
-                       base_id,          &
-                       block_id,         &
-                       coord_id,         &
-                       coord_data_type,  &
-                       coord_name,       &
-                       error)             
+  call Cg_Coord_Info_F(file_id,          & !(in )
+                       base_id,          & !(in )
+                       block_id,         & !(in )
+                       coord_id,         & !(in )
+                       coord_data_type,  & !(out)
+                       coord_name,       & !(out)
+                       error)              !(out)
   if (error .ne. 0) then
     print *, "# Failed to get info in for coord_id"
     call Cg_Error_Exit_F()

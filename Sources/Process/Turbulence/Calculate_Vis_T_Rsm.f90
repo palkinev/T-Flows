@@ -20,7 +20,7 @@
   type(Grid_Type) :: grid
 !-----------------------------------[Locals]-----------------------------------!
   integer           :: c
-  real              :: cmu_mod                                        
+  real              :: cmu_mod, kin_sq_2_eps
 !==============================================================================!
 !   Dimensions:                                                                !
 !   Production    p_kin    [m^2/s^3]   | Rate-of-strain  shear     [1/s]       !
@@ -33,23 +33,40 @@
 !   Thermal cap.  capacity[m^2/(s^2*K)]| Therm. conductivity     [kg*m/(s^3*K)]!
 !------------------------------------------------------------------------------!
 
-  call Calculate_shear_And_Vorticity(grid)
+  call Calculate_Shear_And_Vorticity(grid)
 
   if(turbulence_model .eq. HANJALIC_JAKIRLIC) then
+! old version
+!    do c = 1, grid % n_cells
+!      kin % n(c) = 0.5*max(uu % n(c) + vv % n(c) + ww % n(c), TINY)
+!
+!      cmu_mod = max(-(  uu % n(c) * u % x(c)               &
+!                      + vv % n(c) * v % y(c)               &
+!                      + ww % n(c) * w % z(c)               &
+!                      + uv % n(c) * (v % x(c) + u % y(c))  &
+!                      + uw % n(c) * (u % z(c) + w % x(c))  &
+!                      + vw % n(c) * (v % z(c) + w % y(c))) &
+!        / max(kin % n(c)**2 / ( eps_tot(c) + TINY) * shear(c)**2, TINY), 0.0)
+!
+!      cmu_mod = min(0.12, cmu_mod)
+!      
+!      vis_t(c) = cmu_mod * density * kin % n(c)**2 / ( eps_tot(c) + TINY )
+!    end do 
+
     do c = 1, grid % n_cells
+
+      ! k
       kin % n(c) = 0.5*max(uu % n(c) + vv % n(c) + ww % n(c), TINY)
+      ! k^2/eps_tot
+      kin_sq_2_eps = kin % n(c)**2 / eps_tot(c)
+      ! Pk/ (k^2/eps * S^2)
+      cmu_mod = p_kin(c) / max(kin_sq_2_eps * shear(c)**2, TINY)
 
-      cmu_mod = max(-(  uu % n(c) * u % x(c)               &
-                      + vv % n(c) * v % y(c)               &
-                      + ww % n(c) * w % z(c)               &
-                      + uv % n(c) * (v % x(c) + u % y(c))  &
-                      + uw % n(c) * (u % z(c) + w % x(c))  &
-                      + vw % n(c) * (v % z(c) + w % y(c))) &
-        / max(kin % n(c)**2. / ( eps_tot(c) + TINY) * shear(c)**2., TINY), 0.0)
+      !cmu_mod = min(0.12, cmu_mod) ! ghost
 
-      cmu_mod = min(0.12, cmu_mod) 
-      vis_t(c) = cmu_mod * density * kin % n(c)**2. / ( eps_tot(c) + TINY)
+      vis_t(c) = cmu_mod * density * kin_sq_2_eps
     end do 
+
   else if(turbulence_model .eq. REYNOLDS_STRESS) then
     do c = 1, grid % n_cells
       kin % n(c) = 0.5*max(uu % n(c) + vv % n(c) + ww % n(c), TINY)
@@ -61,10 +78,10 @@
                       + uv % n(c) * (v % x(c) + u % y(c))  &
                       + uw % n(c) * (u % z(c) + w % x(c))  &
                       + vw % n(c) * (v % z(c) + w % y(c))) &
-               / max(kin % n(c)**2. / eps % n(c) * shear(c)**2., TINY), 0.0)
+               / max(kin % n(c)**2 / eps % n(c) * shear(c)**2, TINY), 0.0)
 
       cmu_mod = min(0.12,cmu_mod)
-      vis_t(c) = cmu_mod * density * kin % n(c)**2. / (eps % n(c) + TINY)
+      vis_t(c) = cmu_mod * density * kin % n(c)**2 / (eps % n(c) + TINY)
     end do
   end if
 

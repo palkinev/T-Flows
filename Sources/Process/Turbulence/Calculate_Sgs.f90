@@ -152,8 +152,8 @@
           u_tan = TINY 
         end if
 
-        a_pow = 8.3
-        b_pow = 1.0/7.0
+        a_pow = 8.3 ! ghost
+        b_pow = 1.0/7.0 ! ghost
         nu = viscosity/density
         dely = grid % wall_dist(c1)
 
@@ -166,7 +166,7 @@
  
         ! Calculate y+
         y_plus(c1)  = dely*u_tau_l/nu
-        if(y_plus(c1)  >=  11.81) then
+        if(y_plus(c1)  >=  11.81) then ! ghost
           ! This one is effective viscosity
           vis_wall(c1) = density*u_tau_l*u_tau_l*dely/abs(u_tan) 
         else 

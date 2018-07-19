@@ -18,11 +18,12 @@
   block_id = block
 
   ! Get number of boundary condition in block
-  call Cg_Nbocos_F(file_id,      &
-                   base_id,      &
-                   block_id,     &
-                   n_bnd_conds,  &
-                   error)   
+  call Cg_Nbocos_F(file_id,      & !(in )
+                   base_id,      & !(in )
+                   block_id,     & !(in )
+                   n_bnd_conds,  & !(out)
+                   error)          !(out)
+
   if (error.ne.0) then
     print *,"# Failed to obtain number of boundary conditions"
     call Cg_Error_Exit_F()

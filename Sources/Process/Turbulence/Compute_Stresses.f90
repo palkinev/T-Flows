@@ -5,6 +5,7 @@
 !   'EBM' and 'HJ' are calling this subroutine.                                !
 !------------------------------------------------------------------------------!
 !----------------------------------[Modules]-----------------------------------!
+  use Const_Mod
   use Flow_Mod
   use Les_Mod
   use Rans_Mod
@@ -319,9 +320,9 @@
   !------------------------------!
   if(turbulence_model_variant .ne. STABILIZED) then
     if(phi % name .eq. 'EPS') then
-      c_mu_d = 0.18        
+      c_mu_d = c_eps
     else
-      c_mu_d = 0.22
+      c_mu_d = c_s
     end if 
     if(turbulence_model .eq. HANJALIC_JAKIRLIC) then        
       do c = 1, grid % n_cells
@@ -527,8 +528,8 @@
     call Info_Mod_Iter_Fill_At(4, 4, phi % name, niter, phi % res)
 
   if(phi % name .eq. 'EPS') then
-    do c= 1, grid % n_cells
-      phi % n(c) = phi % n(c) 
+    do c = 1, grid % n_cells
+      phi % n(c) = phi % n(c)
      if( phi % n(c) < 0.) then
        phi % n(c) = phi % o(c)
      end if
@@ -539,7 +540,7 @@
      phi % name .eq. 'VV' .or.  &
      phi % name .eq. 'WW') then
     do c = 1, grid % n_cells
-      phi % n(c) = phi % n(c) 
+      phi % n(c) = phi % n(c)
       if(phi % n(c) < 0.) then
         phi % n(c) = phi % o(c)
       end if

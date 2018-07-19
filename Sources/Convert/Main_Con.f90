@@ -58,18 +58,18 @@
   call Grid_Topology     (grid)
   call Find_Faces        (grid)
   call Calculate_Geometry(grid)
-  call Connect_Domains (grid)
+  call Connect_Domains   (grid)
 
   ! Prepare for saving
-  do n=1,grid % n_nodes
+  do n = 1, grid % n_nodes
     new_n(n) = n 
   end do  
-  do c=-grid % n_bnd_cells,grid % n_cells
+  do c = - grid % n_bnd_cells, grid % n_cells
     new_c(c) = c 
   end do  
-  do s=1,grid % n_faces 
+  do s = 1, grid % n_faces 
     new_f(s) = s
-  end do  
+  end do
 
   !-------------------------------!
   !   Save files for processing   !
@@ -79,7 +79,7 @@
                       grid % n_cells,      &
                       grid % n_faces,      &
                       grid % n_bnd_cells,  &
-                      0, 0) 
+                      0, 0)
 
   !-----------------------------------------------------!
   !   Save grid for visualisation and post-processing   !

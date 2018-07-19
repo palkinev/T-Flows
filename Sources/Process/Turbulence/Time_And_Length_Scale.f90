@@ -35,7 +35,7 @@
 !------------------------------------------------------------------------------!
 
   kin_vis = viscosity/density
-  eps_l(1:grid % n_cells) = eps % n(1:grid % n_cells) + TINY ! limited eps % n
+  eps_l(1:grid % n_cells) = max(eps % n(1:grid % n_cells),TINY)! limited eps % n
 
   do c = 1, grid % n_cells
     t1(c) = kin % n(c)/eps_l(c)
@@ -68,6 +68,12 @@
       kin % n(c) = max(0.5*(uu % n(c) + vv % n(c) + ww % n(c)), TINY)
       t_scale(c) =     max(t1(c),t2(c))
       l_scale(c) = c_l*max(l1(c),l2(c))
+    end do
+  else if(turbulence_model .eq. HANJALIC_JAKIRLIC) then
+    do c = 1, grid % n_cells
+      kin % n(c) = max(0.5*(uu % n(c) + vv % n(c) + ww % n(c)), TINY)
+      t_scale(c) = max(t1(c),TINY)
+      l_scale(c) = max(l1(c),TINY)
     end do
   end if
 

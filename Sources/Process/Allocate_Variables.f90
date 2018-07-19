@@ -192,7 +192,7 @@
     allocate(l_scale(-grid % n_bnd_cells:grid % n_cells));  l_scale = 0.
     allocate(p_kin  (-grid % n_bnd_cells:grid % n_cells));  p_kin   = 0.
     if(turbulence_model .eq. HANJALIC_JAKIRLIC) then
-      allocate(eps_tot(-grid % n_bnd_cells:grid % n_cells)); eps_tot = 0.
+      allocate(eps_tot(-grid % n_bnd_cells:grid % n_cells)); eps_tot = TINY
     end if
 
   end if

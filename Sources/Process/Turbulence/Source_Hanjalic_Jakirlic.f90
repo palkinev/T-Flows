@@ -2,7 +2,17 @@
   subroutine Source_Hanjalic_Jakirlic(grid, name_phi)
 !------------------------------------------------------------------------------!
 !   Calculate source terms for transport equations for Re stresses and         !
-!   dissipation for Hanjalic-Jakirlic model.                                   !  
+!   dissipation of homogeneous turbulence for Hanjalic-Jakirlic model.         !
+!   Following paper "A new approach to modelling near-wall turbulence energy   !
+!   and stress dissipation"                                                    !
+!   DOI: 10.1017/S0022112002007905                                             !
+!                                                                              !
+!   Dissipation equation's source term follows paper "Near-wall,               !
+!   Reynolds-stress model calculations of transonic flow configurations        !
+!   relevant to aircraft aerodynamics"                                         !
+!   DOI: doi:10.1016/j.ijheatfluidflow.2007.04.001                             !
+!                                                                              !
+!   All comments in this function reffer to first paper                        !
 !------------------------------------------------------------------------------!
 !----------------------------------[Modules]-----------------------------------!
   use Const_Mod
@@ -10,47 +20,49 @@
   use Rans_Mod
   use Grid_Mod
   use Grad_Mod
-  use Work_Mod, only: l_sc_x => r_cell_01,  &
-                      l_sc_y => r_cell_02,  &
-                      l_sc_z => r_cell_03,  &
-                      kin_x  => r_cell_04,  &
-                      kin_y  => r_cell_05,  &
-                      kin_z  => r_cell_06,  &
-                      kin_xx => r_cell_07,  &
-                      kin_yy => r_cell_08,  &
-                      kin_zz => r_cell_09,  &
-                      ui_xx  => r_cell_10,  &
-                      ui_yy  => r_cell_11,  &
-                      ui_zz  => r_cell_12,  &
-                      ui_xy  => r_cell_13,  &
-                      ui_xz  => r_cell_14,  &
-                      ui_yz  => r_cell_15,  &
-                      kin_e  => r_cell_16,  &
-                      diss1  => r_cell_17    
+  use Work_Mod, only: l_sc_x            => r_cell_01,  &
+                      l_sc_y            => r_cell_02,  &
+                      l_sc_z            => r_cell_03,  &
+                      kin_x             => r_cell_04,  &
+                      kin_y             => r_cell_05,  &
+                      kin_z             => r_cell_06,  &
+                      kin_xx            => r_cell_07,  &
+                      kin_yy            => r_cell_08,  &
+                      kin_zz            => r_cell_09,  &
+                      u_xx              => r_cell_10,  &
+                      u_yy              => r_cell_11,  &
+                      u_zz              => r_cell_12,  &
+                      u_xy              => r_cell_13,  &
+                      u_xz              => r_cell_14,  &
+                      u_yz              => r_cell_15,  &
+                      sq_kin            => r_cell_16,  &
+                      eps_lim           => r_cell_17,  &
+                      re_t              => r_cell_18,  &
+                      eps_second_term   => r_cell_19
 !------------------------------------------------------------------------------!
   implicit none
 !---------------------------------[Arguments]----------------------------------!
   type(Grid_Type)  :: grid
   character(len=*) :: name_phi
 !-----------------------------------[Locals]-----------------------------------!
-  integer :: c, s, c1, c2, i, icont
-  real    :: mag
-  real    :: a11, a22, a33, a12, a13, a23
-  real    :: s11, s22, s33, s12, s13, s23
-  real    :: v11, v22, v33, v12, v13, v23
-  real    :: n1,n2,n3,aa2,aa3,aa,re_t,ff2,fd,ff1,CC,c1w,c2w,f_w,uu_nn
-  real    :: e11,e12,e13,e21,e22,e23,e31,e32,e33
-  real    :: eps11,eps12,eps13,eps21,eps22,eps23,eps31,eps32,eps33
-  real    :: f_eps, phi2_nn, eps_over_kin
-  real    :: fss,E2,E3,ee,cc1,cc2
-  real    :: Uxx, Uyy, Uzz, Uxy, Uxz, Uyz, Uyx, Uzx, Uzy
-  real    :: r13, r23
-  real    :: a_lk_s_lk, a_mn_a_mn
-  real    :: var1w_11, var1w_22, var1w_33, var1w_12, var1w_13, var1w_23
-  real    :: var2w_11, var2w_22, var2w_33, var2w_12, var2w_13, var2w_23
-  real    :: var1_11, var1_22, var1_33, var1_12, var1_13, var1_23
-  real    :: var2_11, var2_22, var2_33, var2_12, var2_13, var2_23
-  real    :: p11, p22, p33, p12, p13, p23, eps_1, eps_2
+  integer         :: c, s, c1, c2, iterator
+  real            :: mag, eps_2_kin
+  real            :: f_, f_w, f_eps, f_s
+  real            :: a11, a22, a33, a12, a13, a23
+  real            :: e11, e22, e33, e12, e13, e23
+  real            :: eps_h_11, eps_h_22, eps_h_33, eps_h_12, eps_h_13, eps_h_23
+  real            :: p11, p22, p33, p12, p13, p23
+  real            :: phi_ij_2_11, phi_ij_2_22, phi_ij_2_33
+  real            :: phi_ij_2_12, phi_ij_2_13, phi_ij_2_23
+  real            :: u_k_u_m_n_k_n_m, phi_km_2_n_k_n_m
+  real            :: phi_ij_2, phi_ij_1_w_b, phi_ij_1_w_to_a, phi_ij_2_w, eps_h 
+  real            :: a_, a_2, a_3
+  real            :: e_, e_2, e_3
+  real            :: c_, c_1_w, c_2_w, c_1,c_2
+  real            :: n1n1, n2n2, n3n3, n1n2, n1n3, n2n3
+  real            :: eps_wave_2_kin, prod_and_coriolis, stress
+  real            :: eps_first_term, eps_third_term
+  real, parameter :: NINE_EIGHTH = 9./8.
 !==============================================================================!
 !   Dimensions:                                                                !
 !   Production    p_kin    [m^2/s^3]   | Rate-of-strain  shear     [1/s]       !
@@ -64,650 +76,522 @@
 !------------------------------------------------------------------------------!
 ! but dens > 1 mod. not applied here yet
 
-  diss1 = 0.0
+  call Time_And_Length_Scale(grid) ! -> kin, l_scale, t_scale
 
-  ee = 0.5
-  aa = 0.5
+  !--------------------------------------------!
+  !   Preparations before filling source term  !
+  !--------------------------------------------!
 
-  do c = 1, grid % n_cells
-    kin % n(c) = max(0.5*(uu % n(c) + vv % n(c) + ww % n(c)), TINY)
-    l_scale(c) = kin % n(c)**1.5/(eps % n(c)+TINY)
-    t_scale(c) = kin % n(c)/(eps % n(c)+TINY)
-  end do
+  ! Needed for eps_tot -> re_t -> eps_tot (full dissipation)
+  call Grad_Mod_For_Phi(grid, kin % n, 1, kin_x,  .true.)  ! dK/dx
+  call Grad_Mod_For_Phi(grid, kin % n, 2, kin_y,  .true.)  ! dK/dy
+  call Grad_Mod_For_Phi(grid, kin % n, 3, kin_z,  .true.)  ! dK/dz
 
-  call Grad_Mod_For_Phi(grid, kin % n, 1, kin_x, .true.)  ! dK/dx
-  call Grad_Mod_For_Phi(grid, kin % n, 2, kin_y, .true.)  ! dK/dy
-  call Grad_Mod_For_Phi(grid, kin % n, 3, kin_z, .true.)  ! dK/dz
-
-  call Grad_Mod_For_Phi(grid, kin_x, 1, kin_xx, .true.)  ! d^2 K / dx^2
-  call Grad_Mod_For_Phi(grid, kin_y, 2, kin_yy, .true.)  ! d^2 K / dy^2
-  call Grad_Mod_For_Phi(grid, kin_z, 3, kin_zz, .true.)  ! d^2 K / dz^2
+  call Grad_Mod_For_Phi(grid, kin_x,   1, kin_xx, .true.)  ! d^2 K / dx^2
+  call Grad_Mod_For_Phi(grid, kin_y,   2, kin_yy, .true.)  ! d^2 K / dy^2
+  call Grad_Mod_For_Phi(grid, kin_z,   3, kin_zz, .true.)  ! d^2 K / dz^2
 
   do c = 1, grid % n_cells
-    eps_tot(c) = max(eps % n(c) + &
-      0.5 * viscosity * (kin_xx(c) + kin_yy(c) + kin_zz(c)), TINY)
+    eps_lim(c) = max(eps % n(c), TINY)
+
+    ! Page 141, formula (1.1)
+    eps_tot(c) = eps % n(c) + &
+      0.5 * viscosity * ( kin_xx(c) + kin_yy(c) + kin_zz(c) )
+    eps_tot(c) = max(eps_tot(c), TINY) ! limit
+
+    ! Page 142 Re_t
+    re_t(c)  = kin % n(c)**2/viscosity*eps_tot(c)
   end do
 
-! !---------------------------------------------------!
-! !   Below is one of versions of Hanjalic-Jakirlic   !
-! !      model that required much more memory         !
-! !---------------------------------------------------!
-! if(name_phi .eq. "23") then
-!   call Grad_Mod_For_Phi(grid, uu % n, 1, var3x, .true.) ! duu/dx  
-!   call Grad_Mod_For_Phi(grid, uu % n, 2, var3y, .true.) ! duu/dy  
-!   call Grad_Mod_For_Phi(grid, uu % n, 3, var3z, .true.) ! duu/dz  
-!
-!   call Grad_Mod_For_Phi(grid, vv % n, 1, var4x, .true.) ! duw/dx  
-!   call Grad_Mod_For_Phi(grid, vv % n, 2, var4y, .true.) ! duw/dy  
-!   call Grad_Mod_For_Phi(grid, vv % n, 3, var4z, .true.) ! duw/dz  
-!
-!   call Grad_Mod_For_Phi(grid, ww % n, 1, var5x, .true.) ! duw/dx  
-!   call Grad_Mod_For_Phi(grid, ww % n, 2, var5y, .true.) ! duw/dy  
-!   call Grad_Mod_For_Phi(grid, ww % n, 3, var5z, .true.) ! duw/dz  
-!
-!   call Grad_Mod_For_Phi(grid, uv % n, 1, var6x, .true.) ! duv/dx  
-!   call Grad_Mod_For_Phi(grid, uv % n, 2, var6y, .true.) ! duv/dy  
-!   call Grad_Mod_For_Phi(grid, uv % n, 3, var6z, .true.) ! duv/dz  
-!
-!   call Grad_Mod_For_Phi(grid, uw % n, 1, kin_x, .true.) ! duw/dx  
-!   call Grad_Mod_For_Phi(grid, uw % n, 2, kin_y, .true.) ! duw/dy  
-!   call Grad_Mod_For_Phi(grid, uw % n, 3, kin_z, .true.) ! duw/dz  
-!
-!   call Grad_Mod_For_Phi(grid, vw % n, 1, var8x, .true.) ! duw/dx  
-!   call Grad_Mod_For_Phi(grid, vw % n, 2, var8y, .true.) ! duw/dy  
-!   call Grad_Mod_For_Phi(grid, vw % n, 3, var8z, .true.) ! duw/dz  
-!
-!   call Grad_Mod_For_Phi(grid, u % x, 1, var1x, .true.)  ! d2U/dxdx
-!   call Grad_Mod_For_Phi(grid, u % y, 2, var1y, .true.)  ! d2U/dydy
-!   call Grad_Mod_For_Phi(grid, u % z, 3, var1z, .true.)  ! d2U/dzdz
-!   call Grad_Mod_For_Phi(grid, u % x, 2, var2x, .true.)  ! d2U/dxdy
-!   call Grad_Mod_For_Phi(grid, u % x, 3, var2y, .true.)  ! d2U/dxdz
-!   call Grad_Mod_For_Phi(grid, u % y, 3, var2z, .true.)  ! d2U/dydz
-!
-!   call Grad_Mod_For_Phi(grid, v % x, 1, var9x, .true.)  ! d2V/dxdx
-!   call Grad_Mod_For_Phi(grid, v % y, 2, var9y, .true.)  ! d2V/dydy
-!   call Grad_Mod_For_Phi(grid, v % z, 3, var9z, .true.)  ! d2V/dzdz
-!   call Grad_Mod_For_Phi(grid, v % x, 2, var10x, .true.)  ! d2V/dxdy
-!   call Grad_Mod_For_Phi(grid, v % x, 3, var10y, .true.)  ! d2V/dxdz
-!   call Grad_Mod_For_Phi(grid, v % y, 3, var10z, .true.)  ! d2V/dydz
-!
-!   call Grad_Mod_For_Phi(grid, w % x, 1, var11x, .true.)  ! d2W/dxdx
-!   call Grad_Mod_For_Phi(grid, w % y, 2, var11y, .true.)  ! d2W/dydy
-!   call Grad_Mod_For_Phi(grid, w % z, 3, var11z, .true.)  ! d2W/dzdz
-!   call Grad_Mod_For_Phi(grid, w % x, 2, var12x, .true.)  ! d2W/dxdy
-!   call Grad_Mod_For_Phi(grid, w % x, 3, var12y, .true.)  ! d2W/dxdz
-!   call Grad_Mod_For_Phi(grid, w % y, 3, var12z, .true.)  ! d2W/dydz
-!
-!   do c = 1, grid % n_cells
-!     Uxx = var1x(c)
-!     Uyy = var1y(c)
-!     Uzz = var1z(c)
-!     Uxy = var2x(c)
-!     Uxz = var2y(c)
-!     Uyz = var2z(c)
-!     Vxx = var9x(c)
-!     Vyy = var9y(c)
-!     Vzz = var9z(c)
-!     Vxy = var10x(c)
-!     Vxz = var10y(c)
-!     Vyz = var10z(c)
-!     Wxx = var11x(c)
-!     Wyy = var11y(c)
-!     Wzz = var11z(c)
-!     Wxy = var12x(c)
-!     Wxz = var12y(c)
-!     Wyz = var12z(c)
-!     dUdx= u % x(c) 
-!     dUdy= u % y(c) 
-!     dUdz= u % z(c) 
-!     dVdx= v % x(c) 
-!     dVdy= v % y(c) 
-!     dVdz= v % z(c) 
-!     dWdx= w % x(c) 
-!     dWdy= w % y(c) 
-!     dWdz= w % z(c) 
-!     duu_dx = var3x(c)  
-!     duu_dy = var3y(c)  
-!     duu_dz = var3z(c)  
-!     dvv_dx = var4x(c)  
-!     dvv_dy = var4y(c)  
-!     dvv_dz = var4z(c)  
-!     dww_dx = var5x(c)  
-!     dww_dy = var5y(c)  
-!     dww_dz = var5z(c)  
-!     duv_dx = var6x(c)  
-!     duv_dy = var6y(c)  
-!     duv_dz = var6z(c)  
-!     duw_dx = kin_x(c)  
-!     duw_dy = kin_y(c)  
-!     duw_dz = kin_z(c)  
-!     dvw_dx = var8x(c)  
-!     dvw_dy = var8y(c)  
-!     dvw_dz = var8z(c)  
-!
-!     diss1(c) = duu_dx*Uxx + duv_dy*Uyy + duw_dz*Uzz   &
-!              + Uxy*(duv_dx + duu_dy)                  &
-!              + Uxz*(duw_dx + duu_dz)                  &
-!              + Uyz*(duw_dy + duv_dz)                  &
-!              + duv_dx*Vxx + dvv_dy*Vyy + dvw_dz*Vzz   &
-!              + Vxy*(dvv_dx + duv_dy)                  &
-!              + Vxz*(dvw_dx + duv_dz)                  &
-!              + Vyz*(dvw_dy + dvv_dz)                  &
-!              + duw_dx*Wxx + dvw_dy*Wyy + dww_dz*Wzz   &
-!              + Wxy*(dvw_dx + duw_dy)                  &
-!              + Wxz*(dww_dx + duw_dy)                  &
-!              + Wyz*(dww_dy + dvw_dz)                  &
-!              + 0.32 * kin%n(c) / eps%n(c)  *  &
-!                (Uxx    * (duu_dx*dUdx  + duv_dx*dUdy  + duw_dx*dUdz ) + & 
-!                 Uyy    * (duv_dy*dUdx  + dvv_dy*dUdy  + dvw_dy*dUdz ) + & 
-!                 Uzz    * (duw_dz*dUdx  + dvw_dz*dUdy  + dww_dz*dUdz ) + & 
-!                 Uxy    * (duu_dy*dUdx  + duv_dy*dUdy  + duw_dy*dUdz   + &
-!                           duv_dx*dUdx  + dvv_dx*dUdy  + dvw_dx*dUdz ) + & 
-!                 Uxz    * (duu_dz*dUdx  + duv_dz*dUdy  + duw_dz*dUdz   + &
-!                           duw_dx*dUdx  + dvw_dx*dUdy  + dww_dx*dUdz ) + &
-!                 Uyz    * (duv_dz*dUdx  + dvv_dz*dUdy  + dvw_dz*dUdz   + &
-!                           duw_dy*dUdx  + dvw_dy*dUdy  + dww_dy*dUdz ) + &
-!                 Vxx    * (duu_dx*dVdx  + duv_dx*dVdy  + duw_dx*dVdz ) + & 
-!                 Vyy    * (duv_dy*dVdx  + dvv_dy*dVdy  + dvw_dy*dVdz ) + & 
-!                 Vzz    * (duw_dz*dVdx  + dvw_dz*dVdy  + dww_dz*dVdz ) + & 
-!                 Vxy    * (duu_dy*dVdx  + duv_dy*dVdy  + duw_dy*dVdz   + &
-!                           duv_dx*dVdx  + dvv_dx*dVdy  + dvw_dx*dVdz ) + & 
-!                 Vxz    * (duu_dz*dVdx  + duv_dz*dVdy  + duw_dz*dVdz   + &
-!                           duw_dx*dVdx  + dvw_dx*dVdy  + dww_dx*dVdz ) + &
-!                 Vyz    * (duv_dz*dVdx  + dvv_dz*dVdy  + dvw_dz*dVdz   + &
-!                           duw_dy*dVdx  + dvw_dy*dVdy  + dww_dy*dVdz ) + &
-!                 Wxx    * (duu_dx*dWdx  + duv_dx*dWdy  + duw_dx*dWdz ) + & 
-!                 Wyy    * (duv_dy*dWdx  + dvv_dy*dWdy  + dvw_dy*dWdz ) + & 
-!                 Wzz    * (duw_dz*dWdx  + dvw_dz*dWdy  + dww_dz*dWdz ) + & 
-!                 Wxy    * (duu_dy*dWdx  + duv_dy*dWdy  + duw_dy*dWdz   + &
-!                           duv_dx*dWdx  + dvv_dx*dWdy  + dvw_dx*dWdz ) + & 
-!                 Wxz    * (duu_dz*dWdx  + duv_dz*dWdy  + duw_dz*dWdz   + &
-!                           duw_dx*dWdx  + dvw_dx*dWdy  + dww_dx*dWdz ) + &
-!                 Wyz    * (duv_dz*dWdx  + dvv_dz*dWdy  + dvw_dz*dWdz   + &
-!                           duw_dy*dWdx  + dvw_dy*dWdy  + dww_dy*dWdz ))  
-!     diss1(c) =  -2.0 * viscosity * diss1(c)
-!   end do
-! end if
+  if(name_phi .eq. 'UU' .or. name_phi .eq. 'VV' .or. name_phi .eq. 'WW' .or. &
+     name_phi .eq. 'UV' .or. name_phi .eq. 'UW' .or. name_phi .eq. 'VW' ) then
 
-  if(name_phi .eq. 'EPS') then
-  do i=1,3
-    if(i .eq. 1) then
-      call Grad_Mod_For_Phi(grid, U % x, 1, ui_xx, .true.)  ! d2U/dxdx
-      call Grad_Mod_For_Phi(grid, U % x, 2, ui_xy, .true.)  ! d2U/dxdy
-      call Grad_Mod_For_Phi(grid, U % x, 3, ui_xz, .true.)  ! d2U/dxdz
-      call Grad_Mod_For_Phi(grid, U % y, 2, ui_yy, .true.)  ! d2U/dydy
-      call Grad_Mod_For_Phi(grid, U % y, 3, ui_yz, .true.)  ! d2U/dydz
-      call Grad_Mod_For_Phi(grid, U % z, 3, ui_zz, .true.)  ! d2U/dzdz
-    end if
-    if(i .eq. 2) then
-      call Grad_Mod_For_Phi(grid, V % x, 1, ui_xx, .true.)  ! d2V/dxdx
-      call Grad_Mod_For_Phi(grid, V % x, 2, ui_xy, .true.)  ! d2V/dxdy
-      call Grad_Mod_For_Phi(grid, V % x, 3, ui_xz, .true.)  ! d2V/dxdz
-      call Grad_Mod_For_Phi(grid, V % y, 2, ui_yy, .true.)  ! d2V/dydy
-      call Grad_Mod_For_Phi(grid, V % y, 3, ui_yz, .true.)  ! d2V/dydz
-      call Grad_Mod_For_Phi(grid, V % z, 3, ui_zz, .true.)  ! d2V/dzdz
-    end if
-    if(i .eq. 3) then
-      call Grad_Mod_For_Phi(grid, W % x, 1, ui_xx, .true.)  ! d2W/dxdx
-      call Grad_Mod_For_Phi(grid, W % x, 2, ui_xy, .true.)  ! d2W/dxdy
-      call Grad_Mod_For_Phi(grid, W % x, 3, ui_xz, .true.)  ! d2W/dxdz
-      call Grad_Mod_For_Phi(grid, W % y, 2, ui_yy, .true.)  ! d2W/dydy
-      call Grad_Mod_For_Phi(grid, W % y, 3, ui_yz, .true.)  ! d2W/dydz
-      call Grad_Mod_For_Phi(grid, W % z, 3, ui_zz, .true.)  ! d2W/dzdz
-    end if
+    ! Needed for n_i_n_j
+    call Grad_Mod_For_Phi(grid, l_scale, 1, l_sc_x,.true.)
+    call Grad_Mod_For_Phi(grid, l_scale, 2, l_sc_y,.true.)
+    call Grad_Mod_For_Phi(grid, l_scale, 3, l_sc_z,.true.)
 
+  elseif (name_phi .eq. 'EPS') then
+
+    ! For formula 2.19
     do c = 1, grid % n_cells
-      if(i .eq. 1) then
-        Uxx = ui_xx(c)
-        Uxy = ui_xy(c)
-        Uyx = Uxy
-        Uxz = ui_xz(c)
-        Uzx = Uxz
-        Uyy = ui_yy(c)
-        Uyz = ui_yz(c)
-        Uzy = Uyz
-        Uzz = ui_zz(c)
-        diss1(c) =                                    &
-                2.0*0.25*viscosity*kin%n(c)/eps_tot(c)  *  &
-               (uu % n(c)*(Uxx*Uxx+Uxy*Uxy+Uxz*Uxz)+  &
-                uv % n(c)*(Uxx*Uyx+Uxy*Uyy+Uxz*Uyz)+  &
-                uw % n(c)*(Uxx*Uzx+Uxy*Uzy+Uxz*Uzz)+  &
-                uv % n(c)*(Uyx*Uxx+Uyy*Uxy+Uyz*Uxz)+  &
-                vv % n(c)*(Uyx*Uyx+Uyy*Uyy+Uyz*Uyz)+  &
-                vw % n(c)*(Uyx*Uzx+Uyy*Uzy+Uyz*Uzz)+  &
-                uw % n(c)*(Uzx*Uxx+Uzy*Uxy+Uzz*Uxz)+  &
-                vw % n(c)*(Uzx*Uyx+Uzy*Uyy+Uzz*Uyz)+  &
-                ww % n(c)*(Uzx*Uzx+Uzy*Uzy+Uzz*Uzz))
-      end if
-      if(i .eq. 2) then
-        Uxx = ui_xx(c)
-        Uxy = ui_xy(c)
-        Uyx = Uxy
-        Uxz = ui_xz(c)
-        Uzx = Uxz
-        Uyy = ui_yy(c)
-        Uyz = ui_yz(c)
-        Uzy = Uyz
-        Uzz = ui_zz(c)
-        diss1(c) = diss1(c) +                         &
-                2.0*0.25*viscosity*kin%n(c)/eps_tot(c)  *  &
-               (uu % n(c)*(Uxx*Uxx+Uxy*Uxy+Uxz*Uxz)+  &
-                uv % n(c)*(Uxx*Uyx+Uxy*Uyy+Uxz*Uyz)+  &
-                uw % n(c)*(Uxx*Uzx+Uxy*Uzy+Uxz*Uzz)+  &
-                uv % n(c)*(Uyx*Uxx+Uyy*Uxy+Uyz*Uxz)+  &
-                vv % n(c)*(Uyx*Uyx+Uyy*Uyy+Uyz*Uyz)+  &
-                vw % n(c)*(Uyx*Uzx+Uyy*Uzy+Uyz*Uzz)+  &
-                uw % n(c)*(Uzx*Uxx+Uzy*Uxy+Uzz*Uxz)+  &
-                vw % n(c)*(Uzx*Uyx+Uzy*Uyy+Uzz*Uyz)+  &
-                ww % n(c)*(Uzx*Uzx+Uzy*Uzy+Uzz*Uzz))
-      end if
-      if(i .eq. 3) then
-        Uxx = ui_xx(c)
-        Uxy = ui_xy(c)
-        Uyx = Uxy
-        Uxz = ui_xz(c)
-        Uzx = Uxz
-        Uyy = ui_yy(c)
-        Uyz = ui_yz(c)
-        Uzy = Uyz
-        Uzz = ui_zz(c)
-        diss1(c) = diss1(c) +                         &
-                2.0*0.25*viscosity*kin%n(c)/eps_tot(c)  *  &
-               (uu % n(c)*(Uxx*Uxx+Uxy*Uxy+Uxz*Uxz)+  &
-                uv % n(c)*(Uxx*Uyx+Uxy*Uyy+Uxz*Uyz)+  &
-                uw % n(c)*(Uxx*Uzx+Uxy*Uzy+Uxz*Uzz)+  &
-                uv % n(c)*(Uyx*Uxx+Uyy*Uxy+Uyz*Uxz)+  &
-                vv % n(c)*(Uyx*Uyx+Uyy*Uyy+Uyz*Uyz)+  &
-                vw % n(c)*(Uyx*Uzx+Uyy*Uzy+Uyz*Uzz)+  &
-                uw % n(c)*(Uzx*Uxx+Uzy*Uxy+Uzz*Uxz)+  &
-                vw % n(c)*(Uzx*Uyx+Uzy*Uyy+Uzz*Uyz)+  &
-                ww % n(c)*(Uzx*Uzx+Uzy*Uzy+Uzz*Uzz))
-      end if
+      sq_kin(c) = sqrt( kin % n(c) )
     end do
-  end do  ! i
-  end if                               
 
-  call Grad_Mod_For_Phi(grid, l_scale, 1, l_sc_x,.true.) 
-  call Grad_Mod_For_Phi(grid, l_scale, 2, l_sc_y,.true.) 
-  call Grad_Mod_For_Phi(grid, l_scale, 3, l_sc_z,.true.) 
+    call Grad_Mod_For_Phi(grid, sq_kin, 1, kin_x, .true.) ! dK/dx
+    call Grad_Mod_For_Phi(grid, sq_kin, 2, kin_y, .true.) ! dK/dy
+    call Grad_Mod_For_Phi(grid, sq_kin, 3, kin_z, .true.) ! dK/dz
 
-  r13 = ONE_THIRD
-  r23 = TWO_THIRDS
+    ! Formula (7), paper 2, page 605
+    eps_second_term = 0.
+
+    do iterator = 1, 3
+      if(iterator .eq. 1) then
+        call Grad_Mod_For_Phi(grid, u % x, 1, u_xx, .true.) ! d2U/dxdx
+        call Grad_Mod_For_Phi(grid, u % y, 2, u_yy, .true.) ! d2U/dydy
+        call Grad_Mod_For_Phi(grid, u % z, 3, u_zz, .true.) ! d2U/dzdz
+        call Grad_Mod_For_Phi(grid, u % x, 2, u_xy, .true.) ! d2U/dxdy
+        call Grad_Mod_For_Phi(grid, u % x, 3, u_xz, .true.) ! d2U/dxdz
+        call Grad_Mod_For_Phi(grid, u % y, 3, u_yz, .true.) ! d2U/dydz
+      end if
+      if(iterator .eq. 2) then
+        call Grad_Mod_For_Phi(grid, v % x, 1, u_xx, .true.) ! d2V/dxdx
+        call Grad_Mod_For_Phi(grid, v % y, 2, u_yy, .true.) ! d2V/dydy
+        call Grad_Mod_For_Phi(grid, v % z, 3, u_zz, .true.) ! d2V/dzdz
+        call Grad_Mod_For_Phi(grid, v % x, 2, u_xy, .true.) ! d2V/dxdy
+        call Grad_Mod_For_Phi(grid, v % x, 3, u_xz, .true.) ! d2V/dxdz
+        call Grad_Mod_For_Phi(grid, v % y, 3, u_yz, .true.) ! d2V/dydz
+      end if
+      if(iterator .eq. 3) then
+        call Grad_Mod_For_Phi(grid, w % x, 1, u_xx, .true.) ! d2W/dxdx
+        call Grad_Mod_For_Phi(grid, w % y, 2, u_yy, .true.) ! d2W/dydy
+        call Grad_Mod_For_Phi(grid, w % z, 3, u_zz, .true.) ! d2W/dzdz
+        call Grad_Mod_For_Phi(grid, w % x, 2, u_xy, .true.) ! d2W/dxdy
+        call Grad_Mod_For_Phi(grid, w % x, 3, u_xz, .true.) ! d2W/dxdz
+        call Grad_Mod_For_Phi(grid, w % y, 3, u_yz, .true.) ! d2W/dydz
+      end if
+
+      do  c = 1, grid % n_cells
+        eps_second_term(c) = eps_second_term(c)                             +  &
+          uu % n(c)*( u_xx(c)*u_xx(c) + u_xy(c)*u_xy(c) + u_xz(c)*u_xz(c) ) +  &
+          uv % n(c)*( u_xx(c)*u_xy(c) + u_xy(c)*u_yy(c) + u_xz(c)*u_yz(c) ) +  &
+          uw % n(c)*( u_xx(c)*u_xz(c) + u_xy(c)*u_yz(c) + u_xz(c)*u_zz(c) ) +  &
+          uv % n(c)*( u_xy(c)*u_xx(c) + u_yy(c)*u_xy(c) + u_yz(c)*u_xz(c) ) +  &
+          vv % n(c)*( u_xy(c)*u_xy(c) + u_yy(c)*u_yy(c) + u_yz(c)*u_yz(c) ) +  &
+          vw % n(c)*( u_xy(c)*u_xz(c) + u_yy(c)*u_yz(c) + u_yz(c)*u_zz(c) ) +  &
+          uw % n(c)*( u_xz(c)*u_xx(c) + u_yz(c)*u_xy(c) + u_zz(c)*u_xz(c) ) +  &
+          vw % n(c)*( u_xz(c)*u_xy(c) + u_yz(c)*u_yy(c) + u_zz(c)*u_yz(c) ) +  &
+          ww % n(c)*( u_xz(c)*u_xz(c) + u_yz(c)*u_yz(c) + u_zz(c)*u_zz(c) )
+      end do ! c = 1, grid % n_cells
+    end do ! iterator = 1, 3
+
+    eps_second_term(:) = eps_second_term(:) * &
+      c_3e * viscosity * kin % n(c) / eps_tot(c)
+
+  end if
+
+  !-------------------------!
+  !   Filling source term   !
+  !-------------------------!
   do  c = 1, grid % n_cells
 
     ! Epsilon over kinetic energy used almost 30 times in this loop
-    eps_over_kin = eps % n(c) / kin%n(c)
+    eps_2_kin = eps % n(c) / kin % n(c)
 
-    p_kin(c) = max( &
-          - (  uu % n(c)*u % x(c) + uv % n(c)*u % y(c) + uw % n(c)*u % z(c)    &
-             + uv % n(c)*v % x(c) + vv % n(c)*v % y(c) + vw % n(c)*v % z(c)    &
-             + uw % n(c)*w % x(c) + vw % n(c)*w % y(c) + ww % n(c)*w % z(c)),  &
-               1.0e-10)
-  
-    mag = max(0.0, sqrt(l_sc_x(c)**2 + l_sc_y(c)**2 + l_sc_z(c)**2), 1.0e-10)       
+    ! P_k = 0.5 P_ii = - u_i u_k dU_i/dx_k
+    p_kin(c) = -( uu % n(c) * u % x(c)  &
+                + uv % n(c) * u % y(c)  &
+                + uw % n(c) * u % z(c)  &
+                + uv % n(c) * v % x(c)  &
+                + vv % n(c) * v % y(c)  &
+                + vw % n(c) * v % z(c)  &
+                + uw % n(c) * w % x(c)  &
+                + vw % n(c) * w % y(c)  &
+                + ww % n(c) * w % z(c)  )
+    !p_kin(c) = max(p_kin(c), TINY) ! ???
 
-    n1 = l_sc_x(c) / mag 
-    n2 = l_sc_y(c) / mag
-    n3 = l_sc_z(c) / mag
+    if(name_phi .eq. 'UU' .or. name_phi .eq. 'VV' .or. name_phi .eq. 'WW' .or. &
+       name_phi .eq. 'UV' .or. name_phi .eq. 'UW' .or. name_phi .eq. 'VW' ) then
 
-    a11 = uu % n(c) / kin % n(c) - r23 
-    a22 = vv % n(c) / kin % n(c) - r23
-    a33 = ww % n(c) / kin % n(c) - r23
-    a12 = uv % n(c) / kin % n(c)   
-    a13 = uw % n(c) / kin % n(c)    
-    a23 = vw % n(c) / kin % n(c)    
-    
-    s11 = u % x(c)
-    s22 = v % y(c)
-    s33 = w % z(c)
-    s12 = 0.5*(u % y(c)+v % x(c))
-    s13 = 0.5*(u % z(c)+w % x(c))
-    s23 = 0.5*(v % z(c)+w % y(c))
+      ! Formula 2.4
+      a11 = uu % n(c) / kin % n(c) - TWO_THIRDS
+      a22 = vv % n(c) / kin % n(c) - TWO_THIRDS
+      a33 = ww % n(c) / kin % n(c) - TWO_THIRDS
+      a12 = uv % n(c) / kin % n(c)
+      a13 = uw % n(c) / kin % n(c)
+      a23 = vw % n(c) / kin % n(c)
 
-    v11 = 0.0
-    v22 = 0.0
-    v33 = 0.0
-    v12 = 0.5*(u % y(c)-v % x(c)) - omega_z
-    v13 = 0.5*(u % z(c)-w % x(c)) + omega_y
-    v23 = 0.5*(v % z(c)-w % y(c)) - omega_x
+      ! Page 143 A2
+      a_2   = a11**2 + a22**2 + a33**2 &
+         + 2*(a12**2 + a13**2 + a23**2 )
 
-    aa2 = (a11**2)+(a22**2)+(a33**2)+2*((a12**2)+(a13**2)+(a23**2))
-
-    aa3 = a11**3 + a22**3 + a33**3  &
-        + 3*a12**2*(a11+a22)        &
-        + 3*a13**2*(a11+a33)        &
-        + 3*a23**2*(a22+a33)        &
+      ! Page 143 A3
+      a_3 = a11**3 + a22**3 + a33**3 &
+        + 3*a12**2*(a11+a22)         &
+        + 3*a13**2*(a11+a33)         &
+        + 3*a23**2*(a22+a33)         &
         + 6*a12*a13*a23
 
-    aa = 1.0 - (9.0/8.0)*(aa2-aa3)
-    aa = max(aa,0.0)
-    aa = min(aa,1.0)
- 
-    uu_nn = (uu % n(c)*n1*n1 + uv % n(c)*n1*n2 + uw % n(c)*n1*n3   &
-           + uv % n(c)*n2*n1 + vv % n(c)*n2*n2 + vw % n(c)*n2*n3   &
-           + uw % n(c)*n3*n1 + vw % n(c)*n3*n2 + ww % n(c)*n3*n3)
+      ! Page 143 A
+      a_ = 1. - NINE_EIGHTH*(a_2-a_3)
+      a_ = max(a_,0.)
+      a_ = min(a_,1.)
 
-    a_mn_a_mn = a11*a11 + a22*a22 + a33*a33 + 2.0*(a12*a12+a13*a13+a23*a23)
-    a_lk_s_lk = a11*s11 + a22*s22 + a33*s33 + 2.0*(a12*s12+a13*s13+a23*s23)
- 
-    ee=aa
-    fss=1.0-(sqrt(aa) * ee**2)
-    do icont=1,6
-      eps11 = (1.0 - fss)*r23*eps %n(c) + fss * uu%n(c) * eps_over_kin     
-      eps22 = (1.0 - fss)*r23*eps %n(c) + fss * vv%n(c) * eps_over_kin     
-      eps33 = (1.0 - fss)*r23*eps %n(c) + fss * ww%n(c) * eps_over_kin     
-      eps12 = fss * uv%n(c) * eps_over_kin     
-      eps13 = fss * uw%n(c) * eps_over_kin     
-      eps23 = fss * vw%n(c) * eps_over_kin      
-      eps21 = eps12
-      eps31 = eps13
-      eps32 = eps23
+      !--------------------------------------------------!
+      !   Iterative procedure to find f_s and eps_h_ij   !
+      !--------------------------------------------------!
+      ! initial value for e_ = a_
+      e_ = a_
+      f_s = 1.-sqrt(a_)*e_**2
 
-      e11 = eps11 / eps%n(c) - r23
-      e22 = eps22 / eps%n(c) - r23
-      e33 = eps33 / eps%n(c) - r23
-      e12 = eps12 / eps%n(c)
-      e13 = eps13 / eps%n(c)
-      e23 = eps23 / eps%n(c)
-      e21 = e12
-      e31 = e13
-      e32 = e23
-      E2  = (e11**2)+(e22**2)+(e33**2)+2*((e12**2)+(e13**2)+(e23**2))
+      do iterator = 1, 6
+        ! Formula 2.14
+        eps_h_11 = (1.-f_s) * TWO_THIRDS*eps % n(c) + f_s * uu % n(c)*eps_2_kin
+        eps_h_22 = (1.-f_s) * TWO_THIRDS*eps % n(c) + f_s * vv % n(c)*eps_2_kin
+        eps_h_33 = (1.-f_s) * TWO_THIRDS*eps % n(c) + f_s * ww % n(c)*eps_2_kin
+        eps_h_12 =                                    f_s * uv % n(c)*eps_2_kin
+        eps_h_13 =                                    f_s * uw % n(c)*eps_2_kin
+        eps_h_23 =                                    f_s * vw % n(c)*eps_2_kin
 
-      E3 =   e11**3 + e22**3 + e33**3  &
-         + 3*e12**2*(e11+e22)          &
-         + 3*e13**2*(e11+e33)          &
-         + 3*e23**2*(e22+e33)          &
-         + 6*e12*e13*e23
+        ! Formula 2.4
+        e11 = eps_h_11 / eps_lim(c) - TWO_THIRDS
+        e22 = eps_h_22 / eps_lim(c) - TWO_THIRDS
+        e33 = eps_h_33 / eps_lim(c) - TWO_THIRDS
+        e12 = eps_h_12 / eps_lim(c)
+        e13 = eps_h_13 / eps_lim(c)
+        e23 = eps_h_23 / eps_lim(c)
 
-      ee = 1.0 - (9.0/8.0) * (E2 - E3)
+        ! Page 143 e2
+        e_2   = e11**2 + e22**2 + e33**2 &
+           + 2*(e12**2 + e13**2 + e23**2 )
 
-      ee = max(ee,0.0)
-      ee = min(ee,1.0)
-      fss=1.0-(aa**0.5*ee**2.0)
-    end do
-     
-    re_t  = (kin % n(c)**2)/(viscosity*eps_tot(c) + TINY)
-    f_eps = 1.0 - ((c_2e-1.4)/c_2e)*exp(-(re_t/6.0)**2.0)
-    ff2  = min((re_t/150)**1.5, 1.0)
-    fd   = 1.0/(1.0+0.1*re_t)
-    ff1  = min(0.6, aa2)
-    CC   = 2.5*aa*ff1**0.25*ff2
-    cc1  = CC+SQRT(aa)*(ee**2)
-    cc2  = 0.8*SQRT(aa)
-    c1w  = max((1.0-0.7*CC), 0.3)
-    c2w  = min(aa,0.3)
-    f_w  = min((kin%n(c)**1.5)/(2.5*eps_tot(c)*grid % wall_dist(c)),1.4)
+        ! Page 143 e3
+        e_3 = e11**3 + e22**3 + e33**3 &
+          + 3*e12**2*(e11+e22)         &
+          + 3*e13**2*(e11+e33)         &
+          + 3*e23**2*(e22+e33)         &
+          + 6*e12*e13*e23
 
-    p11 = - 2.0*(  uu % n(c) * u % x(c)      &
-                 + uv % n(c) * u % y(c)      &
-                 + uw % n(c) * u % z(c))     &
-          - 2.0 * omega_y * 2.0 * uw % n(c)  &
-          + 2.0 * omega_z * 2.0 * uv % n(c) 
+        ! Page 143 E
+        e_ = 1. - NINE_EIGHTH * (e_2 - e_3)
+        e_ = max(e_, 0.)
+        e_ = min(e_, 1.)
 
-    p22 = - 2.0*(  uv % n(c) * v % x(c)      &
-                 + vv % n(c) * v % y(c)      &
-                 + vw % n(c) * v % z(c))     &
-          + 2.0 * omega_x * 2.0 * vw % n(c)  &
-          - 2.0 * omega_z * 2.0 * uw % n(c) 
+        ! Page 143 f_s
+        f_s = 1.-sqrt(a_)*e_**2
+      end do
 
-    p33 = - 2.0*(  uw % n(c) * w % x(c)      &
-                 + vw % n(c) * w % y(c)      &
-                 + ww % n(c) * w % z(c))     &
-          - 2.0 * omega_x * 2.0 * vw % n(c)  &
-          + 2.0 * omega_y * 2.0 * uw % n(c) 
+      mag = max(l_sc_x(c)**2 + l_sc_y(c)**2 + l_sc_z(c)**2, TINY)
 
-    p12 = -(  uu % n(c) * v % x(c)       &
-            + uv % n(c) * v % y(c)       &
-            + uw % n(c) * v % z(c)       &
-            + uv % n(c) * u % x(c)       &
-            + vv % n(c) * u % y(c)       &
-            + vw % n(c) * u % z(c))      &
-            + 2.0 * omega_x * uw % n(c)  &
-            - 2.0 * omega_y * vw % n(c)  &
-            + 2.0 * omega_z * (vv % n(c) - uu % n(c)) 
+      ! Normal unit (n_i never appears individually, only as n_i * n_j)
+      n1n1 = l_sc_x(c)**2        / mag
+      n2n2 = l_sc_y(c)**2        / mag
+      n3n3 = l_sc_z(c)**2        / mag
+      n1n2 = l_sc_x(c)*l_sc_y(c) / mag
+      n1n3 = l_sc_x(c)*l_sc_z(c) / mag
+      n2n3 = l_sc_y(c)*l_sc_z(c) / mag
 
-    p13 = -(  uw % n(c)*u % x(c)                       &
-            + vw % n(c)*u % y(c)                       &
-            + ww % n(c)*u % z(c)                       &
-            + uu % n(c)*w % x(c)                       &
-            + uv % n(c)*w % y(c)                       &
-            + uw % n(c)*w % z(c))                      &
-            - 2.0 * omega_x * uv % n(c)                &
-            - 2.0 * omega_y * (ww % n(c) - uu % n(c))  &
-            + 2.0 * omega_z * vw % n(c) 
+      ! Page 165 f
+      f_  = min((re_t(c)/150)**1.5, 1.)
+      ! Page 165 C
+      c_  = 2.5*a_*min(0.6, a_2)**0.25*f_
+      ! Page 165 C_1
+      c_1  = c_ + sqrt(a_)*e_**2
+      ! Page 165 C_2
+      c_2  = 0.8*sqrt(a_)
+      ! Page 165 C_1^w
+      c_1_w  = max(1. - 0.7*c_, 0.3)
+      ! Page 165 C_2^w
+      c_2_w  = min(a_,0.3)
+      ! Page 165 f_w
+      f_w  = min(kin % n(c)**1.5/(2.5*eps % n(c)*grid % wall_dist(c)), 1.4)
 
-    p23 = -(  uv % n(c) * w % x(c)                     &
-            + vv % n(c) * w % y(c)                     &
-            + vw % n(c) * w % z(c)                     &
-            + uw % n(c) * v % x(c)                     &
-            + vw % n(c) * v % y(c)                     &
-            + ww % n(c) * v % z(c))                    &
-            - 2.0 * omega_x * (vw % n(c) - ww % n(c))  &
-            + 2.0 * omega_y * uv % n(c)                &
-            - 2.0 * omega_z * uw % n(c) 
+      ! P_ij + G_ij [ copied from Sources_Ebm ]
+      p11 = -2*(uu % n(c)*u % x(c) + uv % n(c)*u % y(c) + uw % n(c)*u % z(c))  &
+            -2*omega_y*2*uw % n(c) + 2*omega_z*2*uv % n(c)
 
-    var1_11 = -cc1*eps%n(c)*a11 
-    var1_22 = -cc1*eps%n(c)*a22 
-    var1_33 = -cc1*eps%n(c)*a33 
-    var1_12 = -cc1*eps%n(c)*a12 
-    var1_13 = -cc1*eps%n(c)*a13 
-    var1_23 = -cc1*eps%n(c)*a23 
+      p22 = -2*(uv % n(c)*v % x(c) + vv % n(c)*v % y(c) + vw % n(c)*v % z(c))  &
+            -2*omega_x*2*vw % n(c) + 2*omega_z*2*uw % n(c)
 
-    var2_11 = -cc2*(p11 - r23*p_kin(c))
-    var2_22 = -cc2*(p22 - r23*p_kin(c))
-    var2_33 = -cc2*(p33 - r23*p_kin(c))
-    var2_12 = -cc2*p12
-    var2_13 = -cc2*p13
-    var2_23 = -cc2*p23
+      p33 = -2*(uw % n(c)*w % x(c) + vw % n(c)*w % y(c) + ww % n(c)*w % z(c))  &
+            -2*omega_x*2*vw % n(c) + 2*omega_y*2*uw % n(c)
 
-    phi2_nn =   var2_11*n1*n1  &
-            + 2*var2_12*n1*n2  &
-            + 2*var2_13*n1*n3  &
-            +   var2_22*n2*n2  &
-            + 2*var2_23*n2*n3  &
-            +   var2_33*n3*n3  
+      p12 = &
+        -uu % n(c)*v % x(c)-uv % n(c)*(v % y(c)+u % x(c)) - uw % n(c)*v % z(c) &
+        -vv % n(c)*u % y(c)-vw % n(c)*u % z(c) &
+        +2*omega_x*uw % n(c)-2*omega_y*vw % n(c)+2*omega_z*(vv % n(c)-uu % n(c))
 
-    var1w_11 = c1w * f_w * eps_over_kin              &
-             * (uu_nn-1.5*2.0*(   uu%n(c)*n1*n1*0.0  &
-                                + uv%n(c)*n1*n2      &
-                                + uw%n(c)*n1*n3))
+      p13 = &
+        - uu % n(c)*w % x(c) - uv%n(c)*w % y(c) - uw % n(c)*(w % z(c)+u % x(c))&
+        - vw % n(c)*u % y(c) - ww % n(c)*u % z(c) &
+        -2*omega_x*uv % n(c)-2*omega_y*(ww % n(c)-uu % n(c))+2*omega_z*vw % n(c)
 
-    var1w_22 = c1w * f_w * eps_over_kin              &
-             * (uu_nn-1.5*2.0*(   uv%n(c)*n2*n1      &
-                                + vv%n(c)*n2*n2*0.0  &
-                                + vw%n(c)*n2*n3))
+      p23 = &
+        - uu % n(c)*w % x(c) - uv%n(c)*w % y(c) - uw % n(c)*(w % z(c)+u % x(c))&
+        - vw % n(c)*u % y(c) - ww % n(c)*u % z(c) &
+        -2*omega_x*(vv % n(c)-ww % n(c))+2*omega_y*uv % n(c)-2*omega_z*uw % n(c)
 
-    var1w_33 = c1w * f_w * eps_over_kin              &
-             * (uu_nn-1.5*2.0*(   uw%n(c)*n3*n1      &
-                                + vw%n(c)*n3*n2      &
-                                + ww%n(c)*n3*n3*0.0))
+      ! Page 164 Phi_ij,2
+      phi_ij_2_11 = - c_2 * (p11 - TWO_THIRDS*p_kin(c) )
+      phi_ij_2_22 = - c_2 * (p22 - TWO_THIRDS*p_kin(c) )
+      phi_ij_2_33 = - c_2 * (p33 - TWO_THIRDS*p_kin(c) )
+      phi_ij_2_12 = - c_2 *  p12
+      phi_ij_2_13 = - c_2 *  p13
+      phi_ij_2_23 = - c_2 *  p23
 
-    var1w_12 = c1w * f_w * eps_over_kin      &
-             *(-1.5*(  uu%n(c)*n2*n1         &
-                     + uv%n(c)*n2*n2*0.0     &
-                     + uw%n(c)*n2*n3         &
-                     + uv%n(c)*n1*n1*0.0     &
-                     + vv%n(c)*n1*n2         &
-                     + vw%n(c)*n1*n3)) 
+      if(name_phi .eq. 'UU' .or. &
+         name_phi .eq. 'VV' .or. &
+         name_phi .eq. 'WW') then
 
-    var1w_13 = c1w * f_w * eps_over_kin      &
-             *(-1.5*(  uu%n(c)*n3*n1         &
-                     + uv%n(c)*n3*n2         &
-                     + uw%n(c)*n3*n3*0.0     &
-                     + uw%n(c)*n1*n1*0.0     &
-                     + vw%n(c)*n1*n2         &
-                     + ww%n(c)*n1*n3))
+        ! For formula page 164 Phi_ij,1^w
+        u_k_u_m_n_k_n_m = uu % n(c)*n1n1 +   vv % n(c)*n2n2 +   ww % n(c)*n3n3 &
+                      + 2*uv % n(c)*n1n2 + 2*uw % n(c)*n1n3 + 2*vw % n(c)*n2n3
 
-    var1w_23 = c1w * f_w * eps_over_kin      &
-             * (-1.5*(  uw%n(c)*n2*n1        &
-                      + vw%n(c)*n2*n2*0.0    &
-                      + ww%n(c)*n2*n3        &
-                      + uv%n(c)*n3*n1        &
-                      + vv%n(c)*n3*n2        &
-                      + vw%n(c)*n3*n3)*0.0)
+        ! Page 164 for Phi_ij,2^w
+        phi_km_2_n_k_n_m =   phi_ij_2_11*n1n1  &
+                         +   phi_ij_2_33*n3n3  &
+                         +   phi_ij_2_22*n2n2  &
+                         + 2*phi_ij_2_12*n1n2  &
+                         + 2*phi_ij_2_13*n1n3  &
+                         + 2*phi_ij_2_23*n2n3
+      end if
 
-    var2w_11 = c2w * f_w * (phi2_nn - 1.5*2.0 * (  var2_11*n1*n1  &
-                                                 + var2_12*n1*n2  &
-                                                 + var2_13*n1*n3))
+      !---------------!
+      !   uu stress   !
+      !---------------!
+      if(name_phi .eq. 'UU') then
 
-    var2w_22 = c2w * f_w * (phi2_nn - 1.5*2.0 * (  var2_12*n1*n2  &
-                                                 + var2_22*n2*n2  &
-                                                 + var2_23*n3*n2))
+        stress = max(uu % n(c), 0.) ! >= 0
 
-    var2w_33 = c2w * f_w * (phi2_nn - 1.5*2.0 * (  var2_13*n1*n3  &
-                                                 + var2_23*n2*n3  &
-                                                 + var2_33*n3*n3))
+        ! P_ij + G_ij
+        prod_and_coriolis = p11
 
-    var2w_12 = c2w*f_w*(-1.5*(var2_11*n2*n1 + var2_12*n2*n2 + var2_13*n2*n3 +  &
-                              var2_12*n1*n1 + var2_22*n1*n2 + var2_23*n1*n3))
-    var2w_13 = c2w*f_w*(-1.5*(var2_11*n3*n1 + var2_12*n3*n2 + var2_13*n3*n3 +  &
-                              var2_13*n1*n1 + var2_23*n1*n2 + var2_33*n1*n3))
-    var2w_23 = c2w*f_w*(-1.5*(var2_13*n2*n1 + var2_23*n2*n2 + var2_33*n2*n3 +  &
-                              var2_12*n3*n1 + var2_22*n3*n2 + var2_23*n3*n3))
+        ! Page 164 Phi_ij,1 is splited in 2 part later
 
-    !---------------!
-    !   UU stress   !
-    !---------------!
-    if(name_phi .eq. 'UU') then
+        ! Page 164 Phi_ij,2
+        phi_ij_2 = phi_ij_2_11
 
-      b(c) = b(c) + (cc1*eps%n(c)*r23 + max(p11,      0.0)  &
-                                      + max(var2_11,  0.0)  &
-                                      + max(var1w_11, 0.0)  &
-                                      + max(var2w_11, 0.0)) * grid % vol(c) 
+        ! Page 164 Phi_ij,1^w
+        phi_ij_1_w_b = c_1_w * f_w * eps_2_kin * ( u_k_u_m_n_k_n_m - 3. *      &
+          (                  uv % n(c)*n1n2 + uw % n(c)*n1n3 )                 )
+          ! uu % n(c)*n1n1 is in the system matrix
+        phi_ij_1_w_to_a = c_1_w * f_w * eps_2_kin * 3. * n1n1
 
-      A % val(A % dia(c)) = A % val(A % dia(c))                         &
-                          + (  cc1 *       eps_over_kin                 &
-                             + c1w * f_w * eps_over_kin     *3.0*n1*n1  &
-                             + fss *       eps_over_kin     ) * grid % vol(c) 
+        ! Page 164 Phi_ij,2^w
+        phi_ij_2_w = c_2_w * f_w * ( phi_km_2_n_k_n_m - 3. *                   &
+          ( phi_ij_2_11*n1n1 + phi_ij_2_12*n1n2 + phi_ij_2_13*n1n3 )           )
 
-      A % val(A % dia(c)) = A % val(A % dia(c))          &
-                          + (  max(-p11,      0.0)       &
-                             + max(-var2_11,  0.0)       &
-                             + max(-var1w_11, 0.0)       &
-                             + max(-var2w_11, 0.0)       &
-                             + (1.0-fss)*r23*eps%n(c) )  &
-                          / max(uu%n(c),1.0e-10) * grid % vol(c) 
+        ! Page 164 eps_h_ij is splited in 2 part later
+      end if
+      !---------------!
+      !   vv stress   !
+      !---------------!
+      if(name_phi .eq. 'VV') then
 
-    !---------------!
-    !   VV stress   !
-    !---------------!
-    else if(name_phi .eq. 'VV') then
+        stress = max(vv % n(c), 0.) ! >= 0
 
-      b(c) = b(c) + (cc1*eps%n(c)*r23 + max(p22,     0.0)  &
-                                      + max(var2_22, 0.0)  &
-                                      + max(var1w_22,0.0)  &
-                                      + max(var2w_22,0.0)) * grid % vol(c) 
+        ! P_ij + G_ij
+        prod_and_coriolis = p22
 
-      A % val(A % dia(c)) = A % val(A % dia(c))                         &
-                          + (  cc1 *       eps_over_kin                 &
-                             + c1w * f_w * eps_over_kin     *3.0*n2*n2  &
-                             + fss *       eps_over_kin     ) * grid % vol(c) 
+        ! Page 164 Phi_ij,1 is splited in 2 part later
 
-      A % val(A % dia(c)) = A % val(A % dia(c))          &
-                          + (  max(-p22,      0.0)       &
-                             + max(-var2_22,  0.0)       &
-                             + max(-var1w_22, 0.0)       &
-                             + max(-var2w_22, 0.0)       &
-                             + (1.0-fss)*r23*eps%n(c) )  &
-                          / max(vv%n(c),1.0e-10) * grid % vol(c) 
+        ! Page 164 Phi_ij,2
+        phi_ij_2 = phi_ij_2_22
 
-    !---------------!
-    !   WW stress   !
-    !---------------!
-    else if(name_phi .eq. 'WW') then
+        ! Page 164 Phi_ij,1^w
+        phi_ij_1_w_b = c_1_w * f_w * eps_2_kin * ( u_k_u_m_n_k_n_m - 3. *      &
+          ( uv % n(c)*n1n2 +                  vw % n(c)*n2n3 )                 )
+          !                  vv % n(c)*n2n2 is in the system matrix
+        phi_ij_1_w_to_a = c_1_w * f_w * eps_2_kin * 3. * n2n2
 
-      b(c) = b(c) + (cc1*eps%n(c)*r23 + max(p33,     0.0)  &
-                                      + max(var2_33, 0.0)  &
-                                      + max(var1w_33,0.0)  &
-                                      + max(var2w_33,0.0)) * grid % vol(c) 
+        ! Page 164 Phi_ij,2^w
+        phi_ij_2_w = c_2_w * f_w * ( phi_km_2_n_k_n_m - 3. *                   &
+          ( phi_ij_2_12*n1n2 + phi_ij_2_22*n2n2 + phi_ij_2_23*n2n3 )           )
 
-      A % val(A % dia(c)) = A % val(A % dia(c))                         &
-                          + (  cc1 *       eps_over_kin                 &
-                             + c1w * f_w * eps_over_kin     *3.0*n3*n3  &
-                             + fss *       eps_over_kin     ) * grid % vol(c) 
+        ! Page 164 eps_h_ij is splited in 2 part later
+      end if
+      !---------------!
+      !   ww stress   !
+      !---------------!
+      if(name_phi .eq. 'WW') then
 
-      A % val(A % dia(c)) = A % val(A % dia(c))          &
-                          + (  max(-p33,      0.0)       &
-                             + max(-var2_33,  0.0)       &
-                             + max(-var1w_33, 0.0)       &
-                             + max(-var2w_33, 0.0)       &
-                             + (1.0-fss)*r23*eps%n(c) )  &
-                          / max(ww%n(c),1.0e-10) * grid % vol(c) 
+        stress = max(ww % n(c), 0.) ! >= 0
 
-    !---------------!
-    !   UV stress   !
-    !---------------!
-    else if(name_phi .eq. 'UV') then
-      b(c) = b(c) + (p12 + var2_12 + var1w_12 + var2w_12) * grid % vol(c) 
-      A % val(A % dia(c)) = A % val(A % dia(c))                                &
-                          + (  cc1 *       eps_over_kin                        &
-                             + c1w * f_w * eps_over_kin     *1.5*(n1*n1+n2*n2) &
-                             + fss *       eps_over_kin      ) * grid % vol(c) 
+        ! P_ij + G_ij
+        prod_and_coriolis = p33
 
-    !---------------!
-    !   UW stress   !
-    !---------------!
-    else if(name_phi .eq. 'UW') then
-      b(c) = b(c) + (p13 + var2_13 + var1w_13 + var2w_13) * grid % vol(c) 
-      A % val(A % dia(c)) = A % val(A % dia(c))                                &
-                          + (  cc1 *       eps_over_kin                        &
-                             + c1w * f_w * eps_over_kin     *1.5*(n1*n1+n3*n3) &
-                             + fss *       eps_over_kin      ) * grid % vol(c) 
+        ! Page 164 Phi_ij,1 is splited in 2 part later
 
-    !---------------!
-    !   VW stress   !
-    !---------------!
-    else if(name_phi .eq. 'VW') then
-      b(c) = b(c) + (p23 + var2_23 + var1w_23 + var2w_23) * grid % vol(c) 
-      A % val(A % dia(c)) = A % val(A % dia(c))                                &
-                          + (  cc1 *       eps_over_kin                        &
-                             + c1w * f_w * eps_over_kin     *1.5*(n2*n2+n3*n3) &
-                             + fss *       eps_over_kin      ) * grid % vol(c) 
+        ! Page 164 Phi_ij,2
+        phi_ij_2 = phi_ij_2_33
 
-    !----------------------!
-    !   Epsilon equation   !
-    !----------------------!
-    else if(name_phi .eq. 'EPS') then 
-      f_eps = 1.0 - ((c_2e-1.4)/c_2e) * exp(-(re_t/6.0)**2)
-      eps_1 = 1.44 * p_kin(c) * eps_over_kin           
-      eps_2 = c_2e * f_eps * eps_over_kin   
-      b(c)  = b(c) + max(eps_1 + diss1(c), 0.0) * grid % vol(c) 
-     
-      A % val(A % dia(c)) =  A % val(A % dia(c)) + eps_2 * grid % vol(c)
+        ! Page 164 Phi_ij,1^w
+        phi_ij_1_w_b = c_1_w * f_w * eps_2_kin * ( u_k_u_m_n_k_n_m - 3. *      &
+          ( uw % n(c)*n1n3 + vw % n(c)*n2n3                  )                 )
+          !                                   ww % n(c)*n3n3 is in the system matrix
+        phi_ij_1_w_to_a = c_1_w * f_w * eps_2_kin * 3. * n3n3
+
+        ! Page 164 Phi_ij,2^w
+        phi_ij_2_w = c_2_w * f_w * ( phi_km_2_n_k_n_m - 3. *                   &
+          ( phi_ij_2_13*n1n3 + phi_ij_2_23*n2n3 + phi_ij_2_33*n3n3 )           )
+
+        ! Page 164 eps_h_ij is splited in 2 part later
+      end if
+      !---------------!
+      !   uv stress   !
+      !---------------!
+      if(name_phi .eq. 'UV') then
+
+        stress = uv % n(c)
+
+        ! P_ij + G_ij
+        prod_and_coriolis = p12
+
+        ! Page 164 Phi_ij,1 is splited in 2 part later
+
+        ! Page 164 Phi_ij,2
+        phi_ij_2 = phi_ij_2_12
+
+        ! Page 164 Phi_ij,1^w
+        phi_ij_1_w_b = c_1_w * f_w * eps_2_kin * ( - 1.5 ) * (  &
+          uu % n(c)*n1n2 +                  uw % n(c)*n2n3 +    &
+                           vv % n(c)*n1n2 + vw % n(c)*n1n3      )
+          ! uv % n(c)*n2n2 + uv % n(c)*n1n1 is in the system matrix
+        phi_ij_1_w_to_a = c_1_w * f_w * eps_2_kin * 1.5 * (n2n2 + n1n1)
+
+        ! Page 164 Phi_ij,2^w
+        phi_ij_2_w = c_2_w * f_w * ( - 1.5 ) * (                   &
+          phi_ij_2_11*n1n2 + phi_ij_2_12*n2n2 + phi_ij_2_13*n2n3 + &
+          phi_ij_2_12*n1n1 + phi_ij_2_22*n1n2 + phi_ij_2_23*n1n3   )
+
+        ! Page 164 eps_h_ij is splited in 2 part later
+
+      end if
+      !---------------!
+      !   uw stress   !
+      !---------------!
+      if(name_phi .eq. 'UW') then
+
+        stress = uw % n(c)
+
+        ! P_ij + G_ij
+        prod_and_coriolis = p13
+
+        ! Page 164 Phi_ij,1 is splited in 2 part later
+
+        ! Page 164 Phi_ij,2
+        phi_ij_2 = phi_ij_2_13
+
+        ! Page 164 Phi_ij,1^w
+        phi_ij_1_w_b = c_1_w * f_w * eps_2_kin * ( - 1.5 ) * (  &
+          uu % n(c)*n1n3 + uv % n(c)*n2n3 +                     &
+                           vw % n(c)*n1n2 + ww % n(c)*n1n3      )
+          ! uw % n(c)*n3n3 + uw % n(c)*n1n1 is in the system matrix
+        phi_ij_1_w_to_a = c_1_w * f_w * eps_2_kin * 1.5 * (n3n3 + n1n1)
+
+        ! Page 164 Phi_ij,2^w
+        phi_ij_2_w = c_2_w * f_w * ( - 1.5 ) * (                   &
+          phi_ij_2_11*n1n3 + phi_ij_2_12*n2n3 + phi_ij_2_13*n3n3 + &
+          phi_ij_2_13*n1n1 + phi_ij_2_23*n1n2 + phi_ij_2_33*n1n3   )
+
+        ! Page 164 eps_h_ij is splited in 2 part later
+
+      end if
+      !---------------!
+      !   vw stress   !
+      !---------------!
+      if(name_phi .eq. 'VW') then
+
+        stress = vw % n(c)
+
+        ! P_ij + G_ij
+        prod_and_coriolis = p23
+
+        ! Page 164 Phi_ij,1 is splited in 2 part later
+
+        ! Page 164 Phi_ij,2
+        phi_ij_2 = phi_ij_2_23
+
+        ! Page 164 Phi_ij,1^w
+        phi_ij_1_w_b = c_1_w * f_w * eps_2_kin * ( - 1.5 ) * (  &
+          uw % n(c)*n1n2 +                  ww % n(c)*n2n3 +    &
+          uv % n(c)*n1n3 + vv % n(c)*n2n3                       )
+          ! vw % n(c)*n2n2 + vw % n(c)*n3n3 is in the system matrix
+        phi_ij_1_w_to_a = c_1_w * f_w * eps_2_kin * 1.5 * (n2n2 + n3n3)
+
+        ! Page 164 Phi_ij,2^w
+        phi_ij_2_w = c_2_w * f_w * ( - 1.5 ) * (                   &
+          phi_ij_2_13*n1n2 + phi_ij_2_23*n2n2 + phi_ij_2_33*n2n3 + &
+          phi_ij_2_12*n1n3 + phi_ij_2_22*n2n3 + phi_ij_2_23*n3n3   )
+
+        ! Page 164 eps_h_ij is splited in 2 part later
+
+      end if
+
+      !-------------------------------------!
+      !   Repeating part for all stresses   !
+      !-------------------------------------!
+      ! limit stress
+      if (stress <  0) stress = min(stress,-TINY)
+      if (stress >= 0) stress = max(stress, TINY)
+
+      ! term depending on Kronecker symbol
+      if(name_phi .eq. 'UU' .or. &
+         name_phi .eq. 'VV' .or. &
+         name_phi .eq. 'WW') then
+
+        b(c) = b(c) + grid % vol(c) *  (   &
+          c_1 * eps % n(c)*TWO_THIRDS      & ! part of Phi_ij_1
+          - (1.-f_s)*TWO_THIRDS*eps % n(c) ) ! part of eps_ij^h
+
+      end if
+
+      b(c) = b(c) + grid % vol(c) *  (  &
+        + max(prod_and_coriolis, 0.)    & ! P_ij + G_ij, if > 0
+        + max(phi_ij_2,          0.)    & ! Phi_ij_2   , if > 0
+        + max(phi_ij_1_w_b,      0.)    & ! Phi_ij_1_w , if > 0
+        + max(phi_ij_2_w,        0.)    ) ! Phi_ij_2_w , if > 0
+
+      a % val(a % dia(c)) = a % val(a % dia(c)) + grid % vol(c) * (  &
+          c_1 * eps_2_kin            & ! part of Phi_ij_1
+        + f_s * eps_2_kin            & ! part of eps_ij^h / u_iu_j
+        + phi_ij_1_w_to_a            & ! part Phi_ij_1_w
+        + (                          &
+        - min(prod_and_coriolis, 0.) & ! (P_ij + G_ij) / u_iu_j, if < 0
+        - min(phi_ij_2,          0.) & ! (Phi_ij_2)    / u_iu_j, if < 0
+        - min(phi_ij_1_w_b,      0.) & ! (Phi_ij_1_w)  / u_iu_j, if < 0
+        - min(phi_ij_2_w,        0.) & ! (Phi_ij_2_w)  / u_iu_j, if < 0
+          ) / stress                 )
+  !----------------------!
+  !   Epsilon equation   !
+  !----------------------!
+
+    elseif (name_phi .eq. 'EPS') then
+      ! Page 165 f_eps
+      f_eps = 1. - (1. - 1.4/c_2e)*exp(-(re_t(c)/6.)**2)
+
+      ! Formula 2.19, second term, other part is in A
+      eps_wave_2_kin = &
+        viscosity * (kin_x(c)**2 + kin_y(c)**2 + kin_z(c)**2) * eps_2_kin
+
+        ! Page 165, diss. eq., first term
+        eps_first_term = c_1e * p_kin(c) * eps_2_kin
+        ! Page 165, diss. eq., third term, part with eps_wave
+        eps_third_term = c_2e * f_eps * eps_wave_2_kin
+
+      ! Page 165, diss. eq., second term from paper 2, other terms from paper 1
+      b(c) = b(c) + grid % vol(c) * (  &
+          max(eps_first_term,     0.)  &
+        + max(eps_second_term(c), 0.)  &
+        + max(eps_third_term,     0. ) )
+
+      a % val(a % dia(c)) = a % val(a % dia(c)) + grid % vol(c) * ( &
+        c_2e * f_eps * eps_2_kin        & ! diss. eq., third term, other part
+        + (                             &
+        - min(eps_first_term,     0.)   &
+        - min(eps_second_term(c), 0.)   &
+        - min(eps_third_term,     0.)   &
+        ) / eps_lim(c)                  )
+
     end if
   end do
 
-  do c = 1, grid % n_cells
-    kin_e(c) = sqrt( 0.5 * (uu % n(c) + vv % n(c) + ww % n(c)) )    
-  end do 
-
-  if(name_phi .eq. 'EPS') then
-    call Grad_Mod_For_Phi(grid, kin_e, 1, kin_x, .true.)             ! dK/dx
-    call Grad_Mod_For_Phi(grid, kin_e, 2, kin_y, .true.)             ! dK/dy
-    call Grad_Mod_For_Phi(grid, kin_e, 3, kin_z, .true.)             ! dK/dz
-    do c = 1, grid % n_cells
-      re_t  = (kin % n(c)**2) / (viscosity*eps % n(c) + TINY)
-      f_eps = 1.0 - ((c_2e-1.4)/c_2e) * exp(-(re_t/6.0)**2)
-      b(c) = b(c) + (c_2e * f_eps * eps % n(c) / kin % n(c)                 &
-                     * (viscosity*(kin_x(c)**2 + kin_y(c)**2 + kin_z(c)**2)))  &
-                  * grid % vol(c)
-    end do
-  end if
-
-  if(name_phi .eq. 'EPS') then
+  ! Formula 2.19 fixes boundary conditions
+  if(name_phi .eq. 'EPS') then ! it is not eps eq.
     do s = 1, grid % n_faces
       c1 = grid % faces_c(1,s)
       c2 = grid % faces_c(2,s)
 
       ! Calculate a values of dissipation  on wall
-      if(c2 < 0 .and. Grid_Mod_Bnd_Cond_Type(grid,c2) .ne. BUFFER ) then
-        if(Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL .or.  &
-           Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALLFL) then
-          ! HOTFIXED IT (c->c2) - CHECK IT
-          eps % n(c2) = viscosity*(kin_x(c2)**2 + kin_y(c2)**2 + kin_z(c2)**2)
-        end if   ! end if of BC=wall
-      end if    ! end if of c2<0
+      if(c2 < 0 ) then
+        if (Grid_Mod_Bnd_Cond_Type(grid,c2)  .ne. BUFFER ) then
+          if(Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL .or.  &
+             Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALLFL) then
+
+            eps % n(c2) = viscosity*(kin_x(c1)**2 + kin_y(c1)**2 + kin_z(c1)**2)
+          end if ! end if of BC=wall
+        end if ! end if of c2<0
+      end if ! end if of c2<0
     end do
   end if
 
