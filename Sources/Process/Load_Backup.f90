@@ -16,7 +16,7 @@
 !---------------------------------[Arguments]----------------------------------!
   type(Grid_Type) :: grid
   integer         :: time_step
-  logical         :: restart 
+  logical         :: restart, present
 !-----------------------------------[Locals]-----------------------------------!
   character(len=80) :: name_in, answer
   integer           :: fh, d
@@ -30,6 +30,16 @@
   if(answer .eq. 'SKIP') then
     restart = .false.
     return 
+  end if
+
+  inquire(file=trim(name_in), exist=present ) 
+  if(.not.present) then
+    if(this_proc < 2) then
+      print *, "=========================================================="
+      print *, "backup file ", trim(name_in)," was not found"
+      print *, "=========================================================="
+    end if
+    stop
   end if
 
   ! Open backup file
