@@ -60,28 +60,26 @@
  ! Source term f22hg
  do c = 1, grid % n_cells
    sor_11 = grid % vol(c)/(turb % l_scale(c)**2 + TINY)
-   a % val(a % dia(c)) = a % val(a % dia(c)) + sor_11 
+   a % val(a % dia(c)) = a % val(a % dia(c)) + sor_11
  end do
 
  ! Imposing boundary condition for f22 on the wall
  do s = 1, grid % n_faces
    c1 = grid % faces_c(1,s)
    c2 = grid % faces_c(2,s)
-   if(c2 < 0) then
-     if(Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL .or.  &
-        Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALLFL) then
+   if(turb % bnd_cond_type(c2) .eq. WALL .or.  &
+      turb % bnd_cond_type(c2) .eq. WALLFL) then
 
-       f22 % n(c2) = -2.0 * flow % viscosity(c1)        &
-                   / flow % density(c1) * zeta % n(c1)  &
-                   / grid % wall_dist(c1)**2
+     f22 % n(c2) = -2.0 * flow % viscosity(c1)        &
+                 / flow % density(c1) * zeta % n(c1)  &
+                 / grid % wall_dist(c1)**2
 
-      ! Fill in a source coefficients
+    ! Fill in a source coefficients
 
-      ! Linearization of the near wall terms helps to get more  
-       ! stable solution, especially for small wall distance.
-       b(c1) = b(c1) + a % fc(s) * f22 % n(c2)
-     end if   ! end if of BC=wall
-   end if    ! end if of c2<0
- end do
+    ! Linearization of the near wall terms helps to get more
+     ! stable solution, especially for small wall distance.
+     b(c1) = b(c1) + a % fc(s) * f22 % n(c2)
+   end if  ! WALL or WALLFL
+ end do  ! 1, grid % n_faces
 
  end subroutine

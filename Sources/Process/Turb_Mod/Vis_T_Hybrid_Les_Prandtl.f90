@@ -3,8 +3,8 @@
 !------------------------------------------------------------------------------!
 !   Calculates SGS stresses and turbulent viscosity for 'LES'.                 !
 !------------------------------------------------------------------------------!
-!   near(c) is the number of corresponding cell on the nearest wall.
-!   In case that, in parallel executions, the subdomain does not have 
+!   near(c) is the number of corresponding cell on the nearest wall
+!   In case that, in parallel executions, the subdomain does not have
 !   any nearwall cells, the near(c) is zero.
 !   near(c) is calculated in NearWallCells.f90, only ones in the beginig
 !   of a simulation.
@@ -18,7 +18,7 @@
   type(Var_Type),   pointer :: u, v, w, t
   integer                   :: c, s, c1, c2
   real                      :: fd    ! damping function
-  real                      :: hwn   ! grid step size in wall-normal direction 
+  real                      :: hwn   ! grid step size in wall-normal direction
   real                      :: hmax
   real                      :: cw, u_ff
   real                      :: dw
@@ -50,7 +50,7 @@
 
     ! If(nearest_wall_cell(c) .ne. 0) is needed for parallel
     ! version since the subdomains which do not "touch" wall
-    ! has nearest_wall_cell(c) = 0. 
+    ! has nearest_wall_cell(c) = 0.
     if(turb % nearest_wall_cell(c) .ne. 0) then
       u_ff = sqrt( flow % viscosity(c)  &
                   * sqrt(  u % n(turb % nearest_wall_cell(c)) ** 2   &
@@ -66,25 +66,23 @@
     end if
     turb % vis_t(c) = min((c_smag*lf_wm)**2, (kappa*dw)**2)  &
                     * flow % shear(c) * fd
-
   end do
 
-  !-----------------!
-  !   Wall Region   !
-  !-----------------+---------------------------!
-  !  The procedure below calculates the vis..   !
-  !  .. at the wall.                            !
-  !----------------.----------------------------!
+  !-----------------+---------------------------------!
+  !   The procedure below calculates the wall visc.   !
+  !-----------------+---------------------------------!
   do s = 1, grid % n_faces
     c1 = grid % faces_c(1,s)
     c2 = grid % faces_c(2,s)
 
-    if(c2 < 0) then
+    if(turb % bnd_cond_type(c2) .eq. WALL .or.  &
+       turb % bnd_cond_type(c2) .eq. WALLFL) then
+
       turb % vis_w(c1) = flow % viscosity(c1)            &
               +        grid % fw(s)  * turb % vis_t(c1)  &
               + (1.0 - grid % fw(s)) * turb % vis_t(c2)
-    end if    ! c2 < 0
-  end do
+    end if  ! WALL or WALLFL
+  end do  ! 1, grid % n_faces
 
   call Grid_Mod_Exchange_Real(grid, turb % vis_t)
   call Grid_Mod_Exchange_Real(grid, turb % vis_w)

@@ -65,8 +65,8 @@
     end if ! heat_transfer
 
     !  Wall difussivity for user scalar
-    if(flow % n_scalars > 0) then            
-      allocate(turb % diff_w(-nb:nc));  turb % diff_w = 0.  
+    if(flow % n_scalars > 0) then
+      allocate(turb % diff_w(-nb:nc));  turb % diff_w = 0.
     end if
 
     ! Turbulent statistics; if needed
@@ -153,8 +153,8 @@
     end if ! heat_transfer
 
     !  Wall difussivity for user scalar
-    if(flow % n_scalars > 0) then            
-      allocate(turb % diff_w(-nb:nc));  turb % diff_w = 0.  
+    if(flow % n_scalars > 0) then
+      allocate(turb % diff_w(-nb:nc));  turb % diff_w = 0.
     end if
 
     if(turb % statistics) then
@@ -645,8 +645,8 @@
     end if ! heat_transfer
 
     !  Wall difussivity for user scalar
-    if(flow % n_scalars > 0) then            
-      allocate(turb % diff_w(-nb:nc));  turb % diff_w = 0.  
+    if(flow % n_scalars > 0) then
+      allocate(turb % diff_w(-nb:nc));  turb % diff_w = 0.
     end if
 
 

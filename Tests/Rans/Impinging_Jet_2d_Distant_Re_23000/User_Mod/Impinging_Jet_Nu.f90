@@ -100,33 +100,32 @@
     do s = 1, grid % n_faces
       c1 = grid % faces_c(1,s)
       c2 = grid % faces_c(2,s)
-      if(c2 < 0) then
-        if(Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALLFL) then
-          r = sqrt(grid % xc(c1)*grid % xc(c1)  + &
-                   grid % yc(c1)*grid % yc(c1)) + TINY
-          if(r < rad_1(i+1) .and.  &
-             r > rad_1(i)   .and.  &
-             grid % zc(c1) < 0.5) then
-            rm_p(i) = rm_p(i) + sqrt(grid % xc(c1)*grid % xc(c1)  + &
-                                     grid % yc(c1)*grid % yc(c1))
-            um_p(i) = um_p(i) +   u % n(c1) * grid % xc(c1) / r  + &
-                                  v % n(c1) * grid % yc(c1) / r
-            vm_p(i) = vm_p(i) + (-u % n(c1) * grid % yc(c1) / r  + &
-                                  v % n(c1) * grid % xc(c1) / r)
-            wm_p(i) = wm_p(i) +   w % n(c1)
-            tm_p(i) = tm_p(i) + t % n(c2) 
-            v1_p(i) = v1_p(i) + grid % zc(c1)
-            v2_p(i) = v2_p(i) + sqrt(turb % tau_wall(c1))
-            v3_p(i) = v3_p(i) + (c_mu**0.25 * kin % n(c1)**0.5)
-            v4_p(i) = v4_p(i) + kin % n(c1)
-            v5_p(i) = v5_p(i) + eps % n(c1)
-            v6_p(i) = v6_p(i) + t % q(c2)
-            n_count(i)= n_count(i) + 1
-          end if
+
+      if(turb % bnd_cond_type(c2) .eq. WALLFL) then
+        r = sqrt(grid % xc(c1)*grid % xc(c1)  + &
+                 grid % yc(c1)*grid % yc(c1)) + TINY
+        if(r < rad_1(i+1) .and.  &
+           r > rad_1(i)   .and.  &
+           grid % zc(c1) < 0.5) then
+          rm_p(i) = rm_p(i) + sqrt(grid % xc(c1)*grid % xc(c1)  + &
+                                   grid % yc(c1)*grid % yc(c1))
+          um_p(i) = um_p(i) +   u % n(c1) * grid % xc(c1) / r  + &
+                                v % n(c1) * grid % yc(c1) / r
+          vm_p(i) = vm_p(i) + (-u % n(c1) * grid % yc(c1) / r  + &
+                                v % n(c1) * grid % xc(c1) / r)
+          wm_p(i) = wm_p(i) +   w % n(c1)
+          tm_p(i) = tm_p(i) + t % n(c2) 
+          v1_p(i) = v1_p(i) + grid % zc(c1)
+          v2_p(i) = v2_p(i) + sqrt(turb % tau_wall(c1))
+          v3_p(i) = v3_p(i) + (c_mu**0.25 * kin % n(c1)**0.5)
+          v4_p(i) = v4_p(i) + kin % n(c1)
+          v5_p(i) = v5_p(i) + eps % n(c1)
+          v6_p(i) = v6_p(i) + t % q(c2)
+          n_count(i)= n_count(i) + 1
         end if
       end if
-    end do
-  end do
+    end do  ! 1, grid % n_faces
+  end do  ! 1, n_prob - 1
 
   ! Average over all processors
   do pl=1, n_prob

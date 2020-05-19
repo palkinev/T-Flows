@@ -66,14 +66,13 @@
   do s = 1, grid % n_faces
     c1 = grid % faces_c(1,s)
     c2 = grid % faces_c(2,s)
-    if(c2 < 0) then
-      if(Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL .or.  &
-         Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALLFL) then
 
-          f22 % n(c2) = 0.0
+    if(turb % bnd_cond_type(c2) .eq. WALL .or.  &
+       turb % bnd_cond_type(c2) .eq. WALLFL) then
 
-      end if   ! end if of BC=wall
-    end if    ! end if of c2<0
-  end do
+        f22 % n(c2) = 0.0
+
+    end if  ! WALL or WALLFL
+  end do  ! 1, grid % n_faces
 
   end subroutine

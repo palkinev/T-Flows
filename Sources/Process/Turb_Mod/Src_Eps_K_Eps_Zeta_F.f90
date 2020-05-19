@@ -61,7 +61,7 @@
 
   call Time_And_Length_Scale(grid, turb)
 
-  do c = 1, grid % n_cells 
+  do c = 1, grid % n_cells
     e_sor = grid % vol(c)/(turb % t_scale(c)+TINY)
     c_11e = c_1e*(1.0 + alpha * ( 1.0/(zeta % n(c)+TINY) ))
     b(c) = b(c) + c_11e * e_sor * turb % p_kin(c)
@@ -87,91 +87,90 @@
   do s = 1, grid % n_faces
     c1 = grid % faces_c(1,s)
     c2 = grid % faces_c(2,s)
-    if(c2 < 0) then
-      kin_vis = flow % viscosity(c1) / flow % density(c1) 
-      if( Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL .or.  &
-          Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALLFL) then
 
-        ! Compute tangential velocity component
-        u_tan = Field_Mod_U_Tan(flow, s)
+    if( turb % bnd_cond_type(c2) .eq. WALL .or.  &
+        turb % bnd_cond_type(c2) .eq. WALLFL) then
 
-        u_tau = c_mu25 * sqrt(kin % n(c1))
+      kin_vis = flow % viscosity(c1) / flow % density(c1)
+      ! Compute tangential velocity component
+      u_tan = Field_Mod_U_Tan(flow, s)
 
-        turb % y_plus(c1) = Y_Plus_Low_Re(turb,                  &
-                                          u_tau,                 &
-                                          grid % wall_dist(c1),  &
-                                          kin_vis)
+      u_tau = c_mu25 * sqrt(kin % n(c1))
 
-        turb % tau_wall(c1) = Tau_Wall_Low_Re(turb,               &
-                                              flow % density(c1), &
-                                              u_tau,              &
-                                              u_tan,              &
-                                              turb % y_plus(c1))
+      turb % y_plus(c1) = Y_Plus_Low_Re(turb,                  &
+                                        u_tau,                 &
+                                        grid % wall_dist(c1),  &
+                                        kin_vis)
 
-        u_tau_new = sqrt(turb % tau_wall(c1) / flow % density(c1))
+      turb % tau_wall(c1) = Tau_Wall_Low_Re(turb,               &
+                                            flow % density(c1), &
+                                            u_tau,              &
+                                            u_tan,              &
+                                            turb % y_plus(c1))
 
-        turb % y_plus(c1) = Y_Plus_Low_Re(turb,                  &
-                                          u_tau_new,             &
-                                          grid % wall_dist(c1),  &
-                                          kin_vis)
+      u_tau_new = sqrt(turb % tau_wall(c1) / flow % density(c1))
 
-        eps_int = 2.0* kin_vis * kin % n(c1)  &
-                / grid % wall_dist(c1)**2
-        eps_wf  = c_mu75 * kin % n(c1)**1.5            &
-                / (grid % wall_dist(c1) * kappa)
+      turb % y_plus(c1) = Y_Plus_Low_Re(turb,                  &
+                                        u_tau_new,             &
+                                        grid % wall_dist(c1),  &
+                                        kin_vis)
 
-        ebf = Turb_Mod_Ebf_Momentum(turb, c1)
+      eps_int = 2.0* kin_vis * kin % n(c1)  &
+              / grid % wall_dist(c1)**2
+      eps_wf  = c_mu75 * kin % n(c1)**1.5            &
+              / (grid % wall_dist(c1) * kappa)
 
-        p_kin_wf  = turb % tau_wall(c1) * c_mu25 * sqrt(kin % n(c1))  &
-                / (grid % wall_dist(c1) * kappa)
+      ebf = Turb_Mod_Ebf_Momentum(turb, c1)
 
-        p_kin_int = turb % vis_t(c1) * flow % shear(c1)**2
+      p_kin_wf  = turb % tau_wall(c1) * c_mu25 * sqrt(kin % n(c1))  &
+              / (grid % wall_dist(c1) * kappa)
 
-        turb % p_kin(c1) = p_kin_int * exp(-1.0 * ebf) + p_kin_wf  &
-                           * exp(-1.0 / ebf)
+      p_kin_int = turb % vis_t(c1) * flow % shear(c1)**2
 
-        fa = min( p_kin_wf * exp(-1.0 / ebf) / (turb % p_kin(c1) + TINY), 1.0)
+      turb % p_kin(c1) = p_kin_int * exp(-1.0 * ebf) + p_kin_wf  &
+                         * exp(-1.0 / ebf)
 
-        eps % n(c1) = (1.0 - fa)**0.5 * eps_int + fa**0.5 * eps_wf
+      fa = min( p_kin_wf * exp(-1.0 / ebf) / (turb % p_kin(c1) + TINY), 1.0)
 
-        if(turb % rough_walls) then
-          z_o = Roughness_Coefficient(turb, turb % z_o_f(c1))
-          turb % y_plus(c1) = Y_Plus_Rough_Walls(turb,                  &
-                                                 u_tau,                 &
-                                                 grid % wall_dist(c1),  &
-                                                 kin_vis)
+      eps % n(c1) = (1.0 - fa)**0.5 * eps_int + fa**0.5 * eps_wf
 
-          eps % n(c1) = c_mu75 * kin % n(c1)**1.5 / &
-                      ((grid % wall_dist(c1) + z_o) * kappa)
+      if(turb % rough_walls) then
+        z_o = Roughness_Coefficient(turb, turb % z_o_f(c1))
+        turb % y_plus(c1) = Y_Plus_Rough_Walls(turb,                  &
+                                               u_tau,                 &
+                                               grid % wall_dist(c1),  &
+                                               kin_vis)
 
-        end if ! rough_walls 
+        eps % n(c1) = c_mu75 * kin % n(c1)**1.5 / &
+                    ((grid % wall_dist(c1) + z_o) * kappa)
 
-        if(turb % y_plus(c1) > 3) then
-          if(buoyancy) then
-             turb % g_buoy(c) = -flow % beta           &
-                              * (grav_x * ut % n(c) +  &
-                                 grav_y * vt % n(c) +  &
-                                 grav_z * wt % n(c))   &
-                              * flow % density(c)
-             b(c) = b(c) + max(0.0, turb % g_buoy(c) * grid % vol(c))
-             a % val(a % dia(c)) = a % val(a % dia(c))    &
-                            + max(0.0,-turb % g_buoy(c)   &
-                            * grid % vol(c)               &
-                            / (kin % n(c) + TINY))
-          end if
+      end if  ! rough_walls
 
-          ! Adjusting coefficient to fix eps value in near wall calls
-          do j = a % row(c1), a % row(c1 + 1) - 1
-            a % val(j) = 0.0
-          end do
-          b(c1) = eps % n(c1)
-          a % val(a % dia(c1)) = 1.0
-        else
-          eps % n(c2) = 2.0* kin_vis * kin % n(c1)  &
-                      / grid % wall_dist(c1)**2
-        end if  ! y_plus(c1) < 3
-      end if      ! wall or wall_flux
-    end if        ! c2 < 0
-  end do
+      if(turb % y_plus(c1) > 3) then
+        if(buoyancy) then
+           turb % g_buoy(c) = -flow % beta           &
+                            * (grav_x * ut % n(c) +  &
+                               grav_y * vt % n(c) +  &
+                               grav_z * wt % n(c))   &
+                            * flow % density(c)
+           b(c) = b(c) + max(0.0, turb % g_buoy(c) * grid % vol(c))
+           a % val(a % dia(c)) = a % val(a % dia(c))    &
+                          + max(0.0,-turb % g_buoy(c)   &
+                          * grid % vol(c)               &
+                          / (kin % n(c) + TINY))
+        end if
+
+        ! Adjusting coefficient to fix eps value in near wall cells
+        do j = a % row(c1), a % row(c1 + 1) - 1
+          a % val(j) = 0.0
+        end do
+        b(c1) = eps % n(c1)
+        a % val(a % dia(c1)) = 1.0
+      else
+        eps % n(c2) = 2.0* kin_vis * kin % n(c1)  &
+                    / grid % wall_dist(c1)**2
+      end if  ! y_plus(c1) < 3
+    end if  ! WALL or WALLFL
+  end do  ! 1, grid % n_faces
 
   end subroutine

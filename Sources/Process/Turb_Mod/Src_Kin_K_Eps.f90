@@ -78,60 +78,58 @@
     c1 = grid % faces_c(1,s)
     c2 = grid % faces_c(2,s)
 
-    if(c2 < 0) then
       kin_vis = flow % viscosity(c1) / flow % density(c1)
-      if(Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL .or.  &
-         Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALLFL) then
+    if(turb % bnd_cond_type(c2) .eq. WALL .or.  &
+       turb % bnd_cond_type(c2) .eq. WALLFL) then
 
-        ! Compute tangential velocity component
-        u_tan = Field_Mod_U_Tan(flow, s)
+      ! Compute tangential velocity component
+      u_tan = Field_Mod_U_Tan(flow, s)
 
-        u_tau = c_mu25 * sqrt(kin % n(c1))
-        turb % y_plus(c1) = Y_Plus_Low_Re(turb,                  &
-                                          u_tau,                 &
-                                          grid % wall_dist(c1),  &
-                                          kin_vis)
+      u_tau = c_mu25 * sqrt(kin % n(c1))
+      turb % y_plus(c1) = Y_Plus_Low_Re(turb,                  &
+                                        u_tau,                 &
+                                        grid % wall_dist(c1),  &
+                                        kin_vis)
 
-        turb % tau_wall(c1) = Tau_Wall_Low_Re(turb,               &
-                                              flow % density(c1), &
-                                              u_tau,              &
-                                              u_tan,              &
-                                              turb % y_plus(c1))
+      turb % tau_wall(c1) = Tau_Wall_Low_Re(turb,               &
+                                            flow % density(c1), &
+                                            u_tau,              &
+                                            u_tan,              &
+                                            turb % y_plus(c1))
 
-        p_kin_wf  = turb % tau_wall(c1) * c_mu25 * sqrt(kin % n(c1))  &
-                  / (grid % wall_dist(c1) * kappa)
+      p_kin_wf  = turb % tau_wall(c1) * c_mu25 * sqrt(kin % n(c1))  &
+                / (grid % wall_dist(c1) * kappa)
 
-        p_kin_int = turb % vis_t(c1) * flow % shear(c1)**2
+      p_kin_int = turb % vis_t(c1) * flow % shear(c1)**2
 
-        turb % p_kin(c1) = p_kin_wf
+      turb % p_kin(c1) = p_kin_wf
 
-        if(turb % rough_walls) then
-          z_o = Roughness_Coefficient(turb, turb % z_o_f(c1))
+      if(turb % rough_walls) then
+        z_o = Roughness_Coefficient(turb, turb % z_o_f(c1))
 
-          turb % y_plus(c1) = Y_Plus_Rough_Walls(turb,                  &
-                                                 u_tau,                 &
-                                                 grid % wall_dist(c1),  &
-                                                 kin_vis)
+        turb % y_plus(c1) = Y_Plus_Rough_Walls(turb,                  &
+                                               u_tau,                 &
+                                               grid % wall_dist(c1),  &
+                                               kin_vis)
 
-          turb % tau_wall(c1) = Tau_Wall_Rough_Walls(turb,                  &
-                                                     flow % density(c1),    &
-                                                     u_tau,                 &
-                                                     u_tan,                 &
-                                                     grid % wall_dist(c1),  &
-                                                     z_o)
+        turb % tau_wall(c1) = Tau_Wall_Rough_Walls(turb,                  &
+                                                   flow % density(c1),    &
+                                                   u_tau,                 &
+                                                   u_tan,                 &
+                                                   grid % wall_dist(c1),  &
+                                                   z_o)
 
-          turb % p_kin(c1) = turb % tau_wall(c1) * c_mu25 * sqrt(kin % n(c1))  &
-                           / (kappa*(grid % wall_dist(c1) + z_o))
+        turb % p_kin(c1) = turb % tau_wall(c1) * c_mu25 * sqrt(kin % n(c1))  &
+                         / (kappa*(grid % wall_dist(c1) + z_o))
 
-        end if  ! rough_walls
+      end if  ! rough_walls
 
-        b(c1) = b(c1)                                                        &
-              + (turb % p_kin(c1) - turb % vis_t(c1) * flow % shear(c1)**2)  &
-              * grid % vol(c1)
+      b(c1) = b(c1)                                                        &
+            + (turb % p_kin(c1) - turb % vis_t(c1) * flow % shear(c1)**2)  &
+            * grid % vol(c1)
 
-      end if    ! Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL or WALLFL
-    end if      ! c2 < 0
-  end do
+    end if  ! Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL or WALLFL
+  end do  ! 1, grid % n_faces
 
   call Grid_Mod_Exchange_Real(grid, kin % n)
 

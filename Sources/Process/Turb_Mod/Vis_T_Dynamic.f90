@@ -42,8 +42,8 @@
 !                                                                              !
 !   C is derived from:    Lij_res = Lij_mod                                    !
 !                                                                              !
-!   res - resolved, mod - modeled                                              ! 
-!                                                                              ! 
+!   res - resolved, mod - modeled                                              !
+!                                                                              !
 !   Lij_res = <UiUj> - <Ui><Uj>,                                               !
 !                                                                              !
 !   where <> denote test filter                                                !
@@ -51,13 +51,13 @@
 !   Lij_mod = 2 * C * Mij, C = Csmag ** 2.0                                    !
 !                                                                              !
 !   where Mij is:  Mij = <delta**2.0>|<Sij>|<Sij> - <delta |Sij| Sij>          !
-!                                                                              ! 
-!   Finaly C is :                                                              ! 
+!                                                                              !
+!   Finaly C is :                                                              !
 !                                                                              !
 !   C = 0.5 * Lij:Mij / Mij:Mij                                                !
 !                                                                              !
 !   Aij : Bij = A11 * B11 + A22 * B22 + A33 * B33                              !
-!             + 2.0 * A12 * B12 + 2.0 A13 * B13 + 2.0 * A23 * B23              !   
+!             + 2.0 * A12 * B12 + 2.0 A13 * B13 + 2.0 * A23 * B23              !
 !                                                                              !
 !------------------------------------------------------------------------------!
 
@@ -74,18 +74,18 @@
   call Grid_Mod_Exchange_Real(grid, w % n)
   call Grid_Mod_Exchange_Real(grid, flow % shear)
 
-  do c =1, grid % n_cells
+  do c = 1, grid % n_cells
     u_a   = 0.0
     v_a   = 0.0
     w_a   = 0.0
     vol_e = 0.0
 
-    uu_a  = 0.0
-    vv_a  = 0.0
-    ww_a  = 0.0
-    uv_a  = 0.0
-    uw_a  = 0.0
-    vw_a  = 0.0
+    uu_a = 0.0
+    vv_a = 0.0
+    ww_a = 0.0
+    uv_a = 0.0
+    uw_a = 0.0
+    vw_a = 0.0
 
     m_11_a = 0.0
     m_22_a = 0.0
@@ -93,9 +93,9 @@
     m_12_a = 0.0
     m_13_a = 0.0
     m_23_a = 0.0
-  
+
     do j = a % row(c), a % row(c + 1) - 1
-      cj = a % col(j) 
+      cj = a % col(j)
       if(cj .ne. c) then
 
         ! Test velocities
@@ -122,8 +122,8 @@
         m_23_a = m_23_a + grid % vol(cj) * flow % shear(cj)              &
                * 0.5 * ( v % z(cj) + w % y(cj) )
 
-        ! Test volume 
-        vol_e = vol_e + grid % vol(cj) 
+        ! Test volume
+        vol_e = vol_e + grid % vol(cj)
       end if
     end do
 
@@ -153,20 +153,20 @@
     v_f(c) = v_a / vol_e
     w_f(c) = w_a / vol_e
 
-    uu_f(c)  = uu_a / vol_e
-    vv_f(c)  = vv_a / vol_e
-    ww_f(c)  = ww_a / vol_e
-    uv_f(c)  = uv_a / vol_e
-    uw_f(c)  = uw_a / vol_e
-    vw_f(c)  = vw_a / vol_e
+    uu_f(c) = uu_a / vol_e
+    vv_f(c) = vv_a / vol_e
+    ww_f(c) = ww_a / vol_e
+    uv_f(c) = uv_a / vol_e
+    uw_f(c) = uw_a / vol_e
+    vw_f(c) = vw_a / vol_e
 
-    m_11_f(c) = m_11_a / vol_e 
-    m_22_f(c) = m_22_a / vol_e 
-    m_33_f(c) = m_33_a / vol_e 
-    m_12_f(c) = m_12_a / vol_e 
-    m_13_f(c) = m_13_a / vol_e 
-    m_23_f(c) = m_23_a / vol_e 
-  end do
+    m_11_f(c) = m_11_a / vol_e
+    m_22_f(c) = m_22_a / vol_e
+    m_33_f(c) = m_33_a / vol_e
+    m_12_f(c) = m_12_a / vol_e
+    m_13_f(c) = m_13_a / vol_e
+    m_23_f(c) = m_23_a / vol_e
+  end do  ! 1, grid % n_cells
 
   call Field_Mod_Grad_Component(flow, u_f(-nb:nc), 1, u % x)  ! dU/dx
   call Field_Mod_Grad_Component(flow, u_f(-nb:nc), 2, u % y)  ! dU/dy
@@ -179,8 +179,8 @@
   call Field_Mod_Grad_Component(flow, w_f(-nb:nc), 3, w % z)  ! dW/dz
 
   do c = 1, grid % n_cells
-    l_g  = grid % vol(c)**ONE_THIRD
-    l_f  = 2.0 * l_g
+    l_g = grid % vol(c)**ONE_THIRD
+    l_f = 2.0 * l_g
 
     shear_test(c) = sqrt(2.0*(  u % x(c)*u % x(c)                            &
                               + v % y(c)*v % y(c)                            &
@@ -189,34 +189,34 @@
                          0.5*(u % z(c) + w % x(c))*(u % z(c) + w % x(c)) +   &
                          0.5*(v % x(c) + u % y(c))*(v % x(c) + u % y(c))))
 
-    l_11 = uu_f(c) - u_f(c) * u_f(c) 
-    l_22 = vv_f(c) - v_f(c) * v_f(c) 
-    l_33 = ww_f(c) - w_f(c) * w_f(c) 
-    l_12 = uv_f(c) - u_f(c) * v_f(c) 
-    l_13 = uw_f(c) - u_f(c) * w_f(c) 
-    l_23 = vw_f(c) - v_f(c) * w_f(c) 
+    l_11 = uu_f(c) - u_f(c) * u_f(c)
+    l_22 = vv_f(c) - v_f(c) * v_f(c)
+    l_33 = ww_f(c) - w_f(c) * w_f(c)
+    l_12 = uv_f(c) - u_f(c) * v_f(c)
+    l_13 = uw_f(c) - u_f(c) * w_f(c)
+    l_23 = vw_f(c) - v_f(c) * w_f(c)
 
-    m_11 = l_f**2 * shear_test(c) * u % x(c) - l_g**2 * m_11_f(c) 
-    m_22 = l_f**2 * shear_test(c) * v % y(c) - l_g**2 * m_22_f(c) 
-    m_33 = l_f**2 * shear_test(c) * w % z(c) - l_g**2 * m_33_f(c) 
+    m_11 = l_f**2 * shear_test(c) * u % x(c) - l_g**2 * m_11_f(c)
+    m_22 = l_f**2 * shear_test(c) * v % y(c) - l_g**2 * m_22_f(c)
+    m_33 = l_f**2 * shear_test(c) * w % z(c) - l_g**2 * m_33_f(c)
 
     m_12 = l_f**2 * shear_test(c) * .5*(u % y(c)+v % x(c)) - l_g**2 * m_12_f(c)
-    m_13 = l_f**2 * shear_test(c) * .5*(u % z(c)+w % x(c)) - l_g**2 * m_13_f(c) 
-    m_23 = l_f**2 * shear_test(c) * .5*(v % z(c)+w % y(c)) - l_g**2 * m_23_f(c)  
+    m_13 = l_f**2 * shear_test(c) * .5*(u % z(c)+w % x(c)) - l_g**2 * m_13_f(c)
+    m_23 = l_f**2 * shear_test(c) * .5*(v % z(c)+w % y(c)) - l_g**2 * m_23_f(c)
 
-    m_dot_m = m_11**2 + m_22**2 + m_33**2 + 2.0 * (m_12**2 + m_13**2 + m_23**2) 
- 
-    l_dot_m =        l_11 * m_11 + l_22 * m_22 + l_33 * m_33   & 
+    m_dot_m = m_11**2 + m_22**2 + m_33**2 + 2.0 * (m_12**2 + m_13**2 + m_23**2)
+
+    l_dot_m =        l_11 * m_11 + l_22 * m_22 + l_33 * m_33   &
             + 2.0 * (l_12 * m_12 + l_13 * m_13 + l_23 * m_23)
 
-    turb % c_dyn(c)  =  -0.5 * l_dot_m / (m_dot_m + TINY) 
+    turb % c_dyn(c)  =  -0.5 * l_dot_m / (m_dot_m + TINY)
 
     ! Set lower and upper limiter on c_dyn
     if(turb % c_dyn(c) < 0.0) then
-      turb % c_dyn(c) = 0.0 
+      turb % c_dyn(c) = 0.0
     else if(turb % c_dyn(c) > 0.04) then
       turb % c_dyn(c) = 0.04
-    end if 
-  end do
+    end if
+  end do  ! 1, grid % n_cells
 
   end subroutine

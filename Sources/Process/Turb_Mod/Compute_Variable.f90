@@ -121,9 +121,9 @@
     if(turb % model .eq. K_EPS_ZETA_F    .or.  &
        turb % model .eq. HYBRID_LES_RANS .or.  &
        turb % model .eq. K_EPS) then
-      if(c2 < 0 .and. phi % name .eq. 'KIN') then
-        if(Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL .or.  &
-           Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALLFL) then
+      if(phi % name .eq. 'KIN') then
+        if(turb % bnd_cond_type(c2) .eq. WALL .or.  &
+           turb % bnd_cond_type(c2) .eq. WALLFL) then
           if(turb % y_plus(c1) > 4) then
 
             phi_x_f = 0.0
@@ -263,7 +263,7 @@
 
   do c = 1, grid % n_cells
     if( phi % n(c) < 0.0 ) phi % n(c) = phi % o(c)
-    if(phi % name .eq. 'ZETA')  phi % n(c) = min(phi % n(c), 1.8) 
+    if(phi % name .eq. 'ZETA')  phi % n(c) = min(phi % n(c), 1.8)
   end do
 
   ! Print info on the screen

@@ -103,29 +103,29 @@
 ! !      model that required much more memory         !
 ! !---------------------------------------------------!
 ! if(name_phi == "23") then
-!   call Field_Mod_Grad_Component(flow, uu % n, 1, var3x) ! duu/dx  
-!   call Field_Mod_Grad_Component(flow, uu % n, 2, var3y) ! duu/dy  
-!   call Field_Mod_Grad_Component(flow, uu % n, 3, var3z) ! duu/dz  
+!   call Field_Mod_Grad_Component(flow, uu % n, 1, var3x) ! duu/dx
+!   call Field_Mod_Grad_Component(flow, uu % n, 2, var3y) ! duu/dy
+!   call Field_Mod_Grad_Component(flow, uu % n, 3, var3z) ! duu/dz
 !
-!   call Field_Mod_Grad_Component(flow, vv % n, 1, var4x) ! duw/dx  
-!   call Field_Mod_Grad_Component(flow, vv % n, 2, var4y) ! duw/dy  
-!   call Field_Mod_Grad_Component(flow, vv % n, 3, var4z) ! duw/dz  
+!   call Field_Mod_Grad_Component(flow, vv % n, 1, var4x) ! duw/dx
+!   call Field_Mod_Grad_Component(flow, vv % n, 2, var4y) ! duw/dy
+!   call Field_Mod_Grad_Component(flow, vv % n, 3, var4z) ! duw/dz
 !
-!   call Field_Mod_Grad_Component(flow, ww % n, 1, var5x) ! duw/dx  
-!   call Field_Mod_Grad_Component(flow, ww % n, 2, var5y) ! duw/dy  
-!   call Field_Mod_Grad_Component(flow, ww % n, 3, var5z) ! duw/dz  
+!   call Field_Mod_Grad_Component(flow, ww % n, 1, var5x) ! duw/dx
+!   call Field_Mod_Grad_Component(flow, ww % n, 2, var5y) ! duw/dy
+!   call Field_Mod_Grad_Component(flow, ww % n, 3, var5z) ! duw/dz
 !
-!   call Field_Mod_Grad_Component(flow, uv % n, 1, var6x) ! duv/dx  
-!   call Field_Mod_Grad_Component(flow, uv % n, 2, var6y) ! duv/dy  
-!   call Field_Mod_Grad_Component(flow, uv % n, 3, var6z) ! duv/dz  
+!   call Field_Mod_Grad_Component(flow, uv % n, 1, var6x) ! duv/dx
+!   call Field_Mod_Grad_Component(flow, uv % n, 2, var6y) ! duv/dy
+!   call Field_Mod_Grad_Component(flow, uv % n, 3, var6z) ! duv/dz
 !
-!   call Field_Mod_Grad_Component(flow, uw % n, 1, kin_x) ! duw/dx  
-!   call Field_Mod_Grad_Component(flow, uw % n, 2, kin_y) ! duw/dy  
-!   call Field_Mod_Grad_Component(flow, uw % n, 3, kin_z) ! duw/dz  
+!   call Field_Mod_Grad_Component(flow, uw % n, 1, kin_x) ! duw/dx
+!   call Field_Mod_Grad_Component(flow, uw % n, 2, kin_y) ! duw/dy
+!   call Field_Mod_Grad_Component(flow, uw % n, 3, kin_z) ! duw/dz
 !
-!   call Field_Mod_Grad_Component(flow, vw % n, 1, var8x) ! duw/dx  
-!   call Field_Mod_Grad_Component(flow, vw % n, 2, var8y) ! duw/dy  
-!   call Field_Mod_Grad_Component(flow, vw % n, 3, var8z) ! duw/dz  
+!   call Field_Mod_Grad_Component(flow, vw % n, 1, var8x) ! duw/dx
+!   call Field_Mod_Grad_Component(flow, vw % n, 2, var8y) ! duw/dy
+!   call Field_Mod_Grad_Component(flow, vw % n, 3, var8z) ! duw/dz
 !
 !   call Field_Mod_Grad_Component(flow, u % x, 1, var1x)  ! d2U/dxdx
 !   call Field_Mod_Grad_Component(flow, u % y, 2, var1y)  ! d2U/dydy
@@ -167,33 +167,33 @@
 !     Wxy = var12x(c)
 !     wxz = var12y(c)
 !     wyz = var12z(c)
-!     dudx= u % x(c) 
-!     dudy= u % y(c) 
-!     dudz= u % z(c) 
-!     dvdx= v % x(c) 
-!     dvdy= v % y(c) 
-!     dvdz= v % z(c) 
-!     dwdx= w % x(c) 
-!     dwdy= w % y(c) 
-!     dwdz= w % z(c) 
-!     duu_dx = var3x(c)  
-!     duu_dy = var3y(c)  
-!     duu_dz = var3z(c)  
-!     dvv_dx = var4x(c)  
-!     dvv_dy = var4y(c)  
-!     dvv_dz = var4z(c)  
-!     dww_dx = var5x(c)  
-!     dww_dy = var5y(c)  
-!     dww_dz = var5z(c)  
-!     duv_dx = var6x(c)  
-!     duv_dy = var6y(c)  
-!     duv_dz = var6z(c)  
-!     duw_dx = kin_x(c)  
-!     duw_dy = kin_y(c)  
-!     duw_dz = kin_z(c)  
-!     dvw_dx = var8x(c)  
-!     dvw_dy = var8y(c)  
-!     dvw_dz = var8z(c)  
+!     dudx= u % x(c)
+!     dudy= u % y(c)
+!     dudz= u % z(c)
+!     dvdx= v % x(c)
+!     dvdy= v % y(c)
+!     dvdz= v % z(c)
+!     dwdx= w % x(c)
+!     dwdy= w % y(c)
+!     dwdz= w % z(c)
+!     duu_dx = var3x(c)
+!     duu_dy = var3y(c)
+!     duu_dz = var3z(c)
+!     dvv_dx = var4x(c)
+!     dvv_dy = var4y(c)
+!     dvv_dz = var4z(c)
+!     dww_dx = var5x(c)
+!     dww_dy = var5y(c)
+!     dww_dz = var5z(c)
+!     duv_dx = var6x(c)
+!     duv_dy = var6y(c)
+!     duv_dz = var6z(c)
+!     duw_dx = kin_x(c)
+!     duw_dy = kin_y(c)
+!     duw_dz = kin_z(c)
+!     dvw_dx = var8x(c)
+!     dvw_dy = var8y(c)
+!     dvw_dz = var8z(c)
 !
 !     diss1(c) = duu_dx*uxx + duv_dy*uyy + duw_dz*uzz   &
 !              + uxy*(duv_dx + duu_dy)                  &
@@ -208,39 +208,39 @@
 !              + wxz*(dww_dx + duw_dy)                  &
 !              + wyz*(dww_dy + dvw_dz)                  &
 !              + 0.32 * kin%n(c) / eps%n(c)  *  &
-!                (uxx    * (duu_dx*dudx  + duv_dx*dudy  + duw_dx*dudz ) + & 
-!                 uyy    * (duv_dy*dudx  + dvv_dy*dudy  + dvw_dy*dudz ) + & 
-!                 uzz    * (duw_dz*dudx  + dvw_dz*dudy  + dww_dz*dudz ) + & 
+!                (uxx    * (duu_dx*dudx  + duv_dx*dudy  + duw_dx*dudz ) + &
+!                 uyy    * (duv_dy*dudx  + dvv_dy*dudy  + dvw_dy*dudz ) + &
+!                 uzz    * (duw_dz*dudx  + dvw_dz*dudy  + dww_dz*dudz ) + &
 !                 uxy    * (duu_dy*dudx  + duv_dy*dudy  + duw_dy*dudz   + &
-!                           duv_dx*dudx  + dvv_dx*dudy  + dvw_dx*dudz ) + & 
+!                           duv_dx*dudx  + dvv_dx*dudy  + dvw_dx*dudz ) + &
 !                 uxz    * (duu_dz*dudx  + duv_dz*dudy  + duw_dz*dudz   + &
 !                           duw_dx*dudx  + dvw_dx*dudy  + dww_dx*dudz ) + &
 !                 uyz    * (duv_dz*dudx  + dvv_dz*dudy  + dvw_dz*dudz   + &
 !                           duw_dy*dudx  + dvw_dy*dudy  + dww_dy*dudz ) + &
-!                 vxx    * (duu_dx*dvdx  + duv_dx*dvdy  + duw_dx*dvdz ) + & 
-!                 vyy    * (duv_dy*dvdx  + dvv_dy*dvdy  + dvw_dy*dvdz ) + & 
-!                 vzz    * (duw_dz*dvdx  + dvw_dz*dvdy  + dww_dz*dvdz ) + & 
+!                 vxx    * (duu_dx*dvdx  + duv_dx*dvdy  + duw_dx*dvdz ) + &
+!                 vyy    * (duv_dy*dvdx  + dvv_dy*dvdy  + dvw_dy*dvdz ) + &
+!                 vzz    * (duw_dz*dvdx  + dvw_dz*dvdy  + dww_dz*dvdz ) + &
 !                 vxy    * (duu_dy*dvdx  + duv_dy*dvdy  + duw_dy*dvdz   + &
-!                           duv_dx*dvdx  + dvv_dx*dvdy  + dvw_dx*dvdz ) + & 
+!                           duv_dx*dvdx  + dvv_dx*dvdy  + dvw_dx*dvdz ) + &
 !                 vxz    * (duu_dz*dvdx  + duv_dz*dvdy  + duw_dz*dvdz   + &
 !                           duw_dx*dvdx  + dvw_dx*dvdy  + dww_dx*dvdz ) + &
 !                 Vyz    * (duv_dz*dvdx  + dvv_dz*dvdy  + dvw_dz*dvdz   + &
 !                           duw_dy*dvdx  + dvw_dy*dvdy  + dww_dy*dvdz ) + &
-!                 wxx    * (duu_dx*dwdx  + duv_dx*dwdy  + duw_dx*dwdz ) + & 
-!                 wyy    * (duv_dy*dwdx  + dvv_dy*dwdy  + dvw_dy*dwdz ) + & 
-!                 wzz    * (duw_dz*dwdx  + dvw_dz*dwdy  + dww_dz*dwdz ) + & 
+!                 wxx    * (duu_dx*dwdx  + duv_dx*dwdy  + duw_dx*dwdz ) + &
+!                 wyy    * (duv_dy*dwdx  + dvv_dy*dwdy  + dvw_dy*dwdz ) + &
+!                 wzz    * (duw_dz*dwdx  + dvw_dz*dwdy  + dww_dz*dwdz ) + &
 !                 Wxy    * (duu_dy*dwdx  + duv_dy*dwdy  + duw_dy*dwdz   + &
-!                           duv_dx*dwdx  + dvv_dx*dwdy  + dvw_dx*dwdz ) + & 
+!                           duv_dx*dwdx  + dvv_dx*dwdy  + dvw_dx*dwdz ) + &
 !                 wxz    * (duu_dz*dwdx  + duv_dz*dwdy  + duw_dz*dwdz   + &
 !                           duw_dx*dwdx  + dvw_dx*dwdy  + dww_dx*dwdz ) + &
 !                 wyz    * (duv_dz*dwdx  + dvv_dz*dwdy  + dvw_dz*dwdz   + &
-!                           duw_dy*dwdx  + dvw_dy*dwdy  + dww_dy*dwdz ))  
+!                           duw_dy*dwdx  + dvw_dy*dwdy  + dww_dy*dwdz ))
 !     diss1(c) =  -2.0 * kin_vis * diss1(c)
 !   end do
 ! end if
 
   if(name_phi == 'EPS') then
-    do i=1,3
+    do i = 1, 3
       if(i == 1) then
         call Field_Mod_Grad_Component(flow, u % x, 1, ui_xx(-nb:nc))  ! d2u/dxdx
         call Field_Mod_Grad_Component(flow, u % x, 2, ui_xy(-nb:nc))  ! d2u/dxdy
@@ -336,7 +336,7 @@
         end if
       end do
     end do  ! i
-  end if    ! end if EPS == yes
+  end if  ! EPS
 
   call Field_Mod_Grad_Component(flow, turb % l_scale, 1, l_sc_x(-nb:nc))
   call Field_Mod_Grad_Component(flow, turb % l_scale, 2, l_sc_y(-nb:nc))
@@ -388,7 +388,7 @@
     aa=1.0 - (9.0/8.0)*(aa2-aa3)
     aa=max(aa,0.0)
     aa=min(aa,1.0)
- 
+
     uu_nn = (uu % n(c)*n1*n1+uv % n(c)*n1*n2+uw % n(c)*n1*n3   &
            + uv % n(c)*n2*n1+vv % n(c)*n2*n2+vw % n(c)*n2*n3   &
            + uw % n(c)*n3*n1+vw % n(c)*n3*n2+ww % n(c)*n3*n3)
@@ -460,19 +460,19 @@
                  + uv % n(c) * u % y(c)      &
                  + uw % n(c) * u % z(c))     &
           - 2.0 * omega_y * 2.0 * uw % n(c)  &
-          + 2.0 * omega_z * 2.0 * uv % n(c) 
+          + 2.0 * omega_z * 2.0 * uv % n(c)
 
     p22 = - 2.0*(  uv % n(c) * v % x(c)      &
                  + vv % n(c) * v % y(c)      &
                  + vw % n(c) * v % z(c))     &
           + 2.0 * omega_x * 2.0 * vw % n(c)  &
-          - 2.0 * omega_z * 2.0 * uw % n(c) 
+          - 2.0 * omega_z * 2.0 * uw % n(c)
 
     p33 = - 2.0*(  uw % n(c) * w % x(c)      &
                  + vw % n(c) * w % y(c)      &
                  + ww % n(c) * w % z(c))     &
           - 2.0 * omega_x * 2.0 * vw % n(c)  &
-          + 2.0 * omega_y * 2.0 * uw % n(c) 
+          + 2.0 * omega_y * 2.0 * uw % n(c)
 
     p12 = -(  uu % n(c) * v % x(c)       &
             + uv % n(c) * v % y(c)       &
@@ -482,7 +482,7 @@
             + vw % n(c) * u % z(c))      &
             + 2.0 * omega_x * uw % n(c)  &
             - 2.0 * omega_y * vw % n(c)  &
-            + 2.0 * omega_z * (vv % n(c) - uu % n(c)) 
+            + 2.0 * omega_z * (vv % n(c) - uu % n(c))
 
     p13 = -(  uw % n(c)*u % x(c)                       &
             + vw % n(c)*u % y(c)                       &
@@ -492,7 +492,7 @@
             + uw % n(c)*w % z(c))                      &
             - 2.0 * omega_x * uv % n(c)                &
             - 2.0 * omega_y * (ww % n(c) - uu % n(c))  &
-            + 2.0 * omega_z * vw % n(c) 
+            + 2.0 * omega_z * vw % n(c)
 
     p23 = -(  uv % n(c) * w % x(c)                     &
             + vv % n(c) * w % y(c)                     &
@@ -502,14 +502,14 @@
             + ww % n(c) * v % z(c))                    &
             - 2.0 * omega_x * (vw % n(c) - ww % n(c))  &
             + 2.0 * omega_y * uv % n(c)                &
-            - 2.0 * omega_z * uw % n(c) 
+            - 2.0 * omega_z * uw % n(c)
 
-    var1_11 = -cc1*eps%n(c)*a11 
-    var1_22 = -cc1*eps%n(c)*a22 
-    var1_33 = -cc1*eps%n(c)*a33 
-    var1_12 = -cc1*eps%n(c)*a12 
-    var1_13 = -cc1*eps%n(c)*a13 
-    var1_23 = -cc1*eps%n(c)*a23 
+    var1_11 = -cc1*eps%n(c)*a11
+    var1_22 = -cc1*eps%n(c)*a22
+    var1_33 = -cc1*eps%n(c)*a33
+    var1_12 = -cc1*eps%n(c)*a12
+    var1_13 = -cc1*eps%n(c)*a13
+    var1_23 = -cc1*eps%n(c)*a23
 
     var2_11 = -cc2*(p11 - r23 * turb % p_kin(c))
     var2_22 = -cc2*(p22 - r23 * turb % p_kin(c))
@@ -689,7 +689,7 @@
     !----------------------!
     !   Epsilon equation   !
     !----------------------!
-    else if(name_phi == 'EPS') then 
+    else if(name_phi == 'EPS') then
       f_eps = 1.0 - ((c_2e-1.4)/c_2e) * exp(-(re_t/6.0)**2)
       eps_1 = 1.44 * turb % p_kin(c) / turb % t_scale(c)
       eps_2 = c_2e * f_eps  / turb % t_scale(c)
@@ -712,11 +712,11 @@
       kin_vis = flow % viscosity(c) / flow % density(c)
       re_t  = (kin % n(c)**2) / (kin_vis*eps % n(c) + TINY)
       f_eps = 1.0 - ((c_2e-1.4)/c_2e) * exp(-(re_t/6.0)**2)
-      b(c) = b(c) + flow % density(c)                               &
-                     * (c_2e * f_eps / turb % t_scale(c)            &
-                     * (kin_vis *(  kin_e_x(c)**2                   &
-                                  + kin_e_y(c)**2                   &
-                                  + kin_e_z(c)**2)))                &
+      b(c) = b(c) + flow % density(c)                     &
+                     * (c_2e * f_eps / turb % t_scale(c)  &
+                     * (kin_vis *(  kin_e_x(c)**2         &
+                                  + kin_e_y(c)**2         &
+                                  + kin_e_z(c)**2)))      &
                      * grid % vol(c)
     end do
   end if
@@ -725,20 +725,16 @@
     do s = 1, grid % n_faces
       c1 = grid % faces_c(1,s)
       c2 = grid % faces_c(2,s)
+      if(turb % bnd_cond_type(c2) .eq. WALL .or.  &
+         turb % bnd_cond_type(c2) .eq. WALLFL) then
 
-      ! Calculate a values of dissipation  on wall
-      if(c2 < 0 ) then
-        if(Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL .or.  &
-           Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALLFL) then
-
-          kin_vis = flow % viscosity(c1) / flow % density(c1)
-          eps % n(c2) = kin_vis * (  kin_e_x(c1)**2  &
-                                   + kin_e_y(c1)**2  &
-                                   + kin_e_z(c1)**2)
-
-        end if   ! end if of BC=wall
-      end if    ! end if of c2<0
-    end do
-  end if
+        ! Calculate a values of dissipation on wall
+        kin_vis = flow % viscosity(c1) / flow % density(c1)
+        eps % n(c2) = kin_vis * (  kin_e_x(c1)**2  &
+                                 + kin_e_y(c1)**2  &
+                                 + kin_e_z(c1)**2)
+      end if  ! WALL or WALLFL
+    end do ! 1, grid % n_faces
+  end if ! EPS
 
   end subroutine

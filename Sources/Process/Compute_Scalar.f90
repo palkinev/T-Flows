@@ -135,32 +135,32 @@
 !     sc_t  = grid % fw(s) * sc_t1 + (1.0-grid % fw(s)) * sc_t2
 !   end if
 
-    ! Gradients on the cell face 
+    ! Gradients on the cell face
     if(c2 > 0) then
       phix_f1 = grid % fw(s)*phi % x(c1) + (1.0-grid % fw(s))*phi % x(c2)
       phiy_f1 = grid % fw(s)*phi % y(c1) + (1.0-grid % fw(s))*phi % y(c2)
       phiz_f1 = grid % fw(s)*phi % z(c1) + (1.0-grid % fw(s))*phi % z(c2)
-      phix_f2 = phix_f1 
-      phiy_f2 = phiy_f1 
-      phiz_f2 = phiz_f1 
+      phix_f2 = phix_f1
+      phiy_f2 = phiy_f1
+      phiz_f2 = phiz_f1
       dif_eff1 = grid % f(s) *(flow % diffusivity + turb % vis_t(c1)/sc_t)  &
            + (1.-grid % f(s))*(flow % diffusivity + turb % vis_t(c2)/sc_t)
-      dif_eff2 = dif_eff1 
+      dif_eff2 = dif_eff1
     else
-      phix_f1 = phi % x(c1) 
-      phiy_f1 = phi % y(c1) 
-      phiz_f1 = phi % z(c1) 
-      phix_f2 = phix_f1 
-      phiy_f2 = phiy_f1 
-      phiz_f2 = phiz_f1 
+      phix_f1 = phi % x(c1)
+      phiy_f1 = phi % y(c1)
+      phiz_f1 = phi % z(c1)
+      phix_f2 = phix_f1
+      phiy_f2 = phiy_f1
+      phiz_f2 = phiz_f1
       dif_eff1 = flow % diffusivity + turb % vis_t(c1) / sc_t
-      dif_eff2 = dif_eff1 
+      dif_eff2 = dif_eff1
     end if
 
 
 !   For species, we don't have some wall diffusivity
 !   if(turb % model .eq. K_EPS .or.  &
-!      turb % model .eq. K_EPS_ZETA_F) then 
+!      turb % model .eq. K_EPS_ZETA_F) then
 !     if(c2 < 0) then
 !       if(Var_Mod_Bnd_Cond_Type(phi,c2) .eq. WALL .or.  &
 !          Var_Mod_Bnd_Cond_Type(phi,c2) .eq. WALLFL) then
@@ -168,7 +168,7 @@
 !         dif_eff2 = dif_eff1
 !       end if
 !     end if
-!   end if  
+!   end if
 
     ! Total (exact) diffusive flux
     f_ex1 = dif_eff1 * (  phix_f1 * grid % sx(s)  &
@@ -179,13 +179,13 @@
                         + phiz_f2 * grid % sz(s))
 
     ! Implicit diffusive flux
-    f_im1 = dif_eff1 * a % fc(s)           &
-          * (  phix_f1 * grid % dx(s)      &
-             + phiy_f1 * grid % dy(s)      &
+    f_im1 = dif_eff1 * a % fc(s)         &
+          * (  phix_f1 * grid % dx(s)    &
+             + phiy_f1 * grid % dy(s)    &
              + phiz_f1 * grid % dz(s) )
-    f_im2 = dif_eff2 * a % fc(s)           &
-          * (  phix_f2 * grid % dx(s)      &
-             + phiy_f2 * grid % dy(s)      &
+    f_im2 = dif_eff2 * a % fc(s)         &
+          * (  phix_f2 * grid % dx(s)    &
+             + phiy_f2 * grid % dy(s)    &
              + phiz_f2 * grid % dz(s) )
 
     ! Cross diffusion part
@@ -208,24 +208,18 @@
       a % val(a % dia(c2))  = a % val(a % dia(c2)) + a21
       a % val(a % pos(1,s)) = a % val(a % pos(1,s)) - a12
       a % val(a % pos(2,s)) = a % val(a % pos(2,s)) - a21
-    else if(c2 < 0) then
-
+    elseif( (phi % bnd_cond_type(c2) .eq. INFLOW) .or.  &
+            (phi % bnd_cond_type(c2) .eq. WALL)   .or.  &
+            (phi % bnd_cond_type(c2) .eq. CONVECT) ) then
       ! Outflow is included because of the flux
       ! corrections which also affects velocities
-      if( (Var_Mod_Bnd_Cond_Type(phi,c2) .eq. INFLOW) .or.  &
-          (Var_Mod_Bnd_Cond_Type(phi,c2) .eq. WALL)   .or.  &
-          (Var_Mod_Bnd_Cond_Type(phi,c2) .eq. CONVECT) ) then
-        a % val(a % dia(c1)) = a % val(a % dia(c1)) + a12
-        b(c1)  = b(c1)  + a12 * phi % n(c2)
-
-      ! In case of wallflux 
-      else if(Var_Mod_Bnd_Cond_Type(phi,c2) .eq. WALLFL) then
-        b(c1) = b(c1) + grid % s(s) * phi % q(c2)
-      end if
-
+      a % val(a % dia(c1)) = a % val(a % dia(c1)) + a12
+      b(c1) = b(c1) + a12 * phi % n(c2)
+    else if(phi % bnd_cond_type(c2) .eq. WALLFL) then
+      b(c1) = b(c1) + grid % s(s) * phi % q(c2)
     end if
 
-  end do  ! through sides
+  end do  ! 1, grid % n_faces
 
   ! Implicit treatment for cross difusive terms
   do c = 1, grid % n_cells
@@ -254,16 +248,16 @@
     if(turb % model_variant .ne. STABILIZED) then
       do c = 1, grid % n_cells
         u1uj_phij(c) = -0.22 * turb % t_scale(c) *  &
-                   (  uu % n(c) * phi % x(c)          &
-                    + uv % n(c) * phi % y(c)          &
+                   (  uu % n(c) * phi % x(c)        &
+                    + uv % n(c) * phi % y(c)        &
                     + uw % n(c) * phi % z(c))
         u2uj_phij(c) = -0.22 * turb % t_scale(c) *  &
-                   (  uv % n(c) * phi % x(c)          &
-                    + vv % n(c) * phi % y(c)          &
+                   (  uv % n(c) * phi % x(c)        &
+                    + vv % n(c) * phi % y(c)        &
                     + vw % n(c) * phi % z(c))
         u3uj_phij(c) = -0.22 * turb % t_scale(c) *  &
-                   (  uw % n(c) * phi % x(c)          &
-                    + vw % n(c) * phi % y(c)          &
+                   (  uw % n(c) * phi % x(c)        &
+                    + vw % n(c) * phi % y(c)        &
                     + ww % n(c) * phi % z(c))
       end do
       call Field_Mod_Grad_Component(flow, u1uj_phij, 1, u1uj_phij_x)
@@ -292,12 +286,12 @@
           phix_f1 = grid % fw(s)*phi % x(c1) + (1.0-grid % fw(s))*phi % x(c2)
           phiy_f1 = grid % fw(s)*phi % y(c1) + (1.0-grid % fw(s))*phi % y(c2)
           phiz_f1 = grid % fw(s)*phi % z(c1) + (1.0-grid % fw(s))*phi % z(c2)
-          phix_f2 = phix_f1 
-          phiy_f2 = phiy_f1 
-          phiz_f2 = phiz_f1 
+          phix_f2 = phix_f1
+          phiy_f2 = phiy_f1
+          phiz_f2 = phiz_f1
           dif_eff1 =      grid % f(s)  * (turb % vis_t(c1)/sc_t )  &
                   + (1. - grid % f(s)) * (turb % vis_t(c2)/sc_t )
-          dif_eff2 = dif_eff1 
+          dif_eff2 = dif_eff1
         else
           phix_f1 = phi % x(c1)
           phiy_f1 = phi % y(c1)

@@ -67,7 +67,7 @@
 
     y_star = (kin_vis * eps % n(c))**0.25 * grid % wall_dist(c)/kin_vis
 
-    f_mu = (1.0 -     exp(-y_star/14.0))**2   &
+    f_mu = (1.0 -     exp(-y_star/14.0))**2  &
          * (1.0 + 5.0*exp(-(re_t/200.0) * (re_t/200.0) ) /re_t**0.75)
 
     f_mu = min(1.0,f_mu)
@@ -80,66 +80,64 @@
     c1 = grid % faces_c(1,s)
     c2 = grid % faces_c(2,s)
 
-    if(c2 < 0) then
-      if(Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL .or.  &
-         Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALLFL) then
+    if(turb % bnd_cond_type(c2) .eq. WALL .or.  &
+       turb % bnd_cond_type(c2) .eq. WALLFL) then
 
-        u_tan = Field_Mod_U_Tan(flow, s)
+      u_tan = Field_Mod_U_Tan(flow, s)
 
-        u_tau = c_mu25 * sqrt(kin % n(c1))
-        turb % y_plus(c1) = Y_Plus_Low_Re(turb,                  &
-                                          u_tau,                 &
-                                          grid % wall_dist(c1),  &
-                                          kin_vis)
+      u_tau = c_mu25 * sqrt(kin % n(c1))
+      turb % y_plus(c1) = Y_Plus_Low_Re(turb,                  &
+                                        u_tau,                 &
+                                        grid % wall_dist(c1),  &
+                                        kin_vis)
 
-        turb % tau_wall(c1) = Tau_Wall_Low_Re(turb,               &
-                                              flow % density(c1), &
-                                              u_tau,              &
-                                              u_tan,              &
-                                              turb % y_plus(c1))
+      turb % tau_wall(c1) = Tau_Wall_Low_Re(turb,                &
+                                            flow % density(c1),  &
+                                            u_tau,               &
+                                            u_tan,               &
+                                            turb % y_plus(c1))
 
-        ebf = Turb_Mod_Ebf_Momentum(turb, c1)
+      ebf = Turb_Mod_Ebf_Momentum(turb, c1)
 
-        u_plus = U_Plus_Log_Law(turb, turb % y_plus(c1))
+      u_plus = U_Plus_Log_Law(turb, turb % y_plus(c1))
 
-        if(turb % y_plus(c1) < 3.0) then
-          turb % vis_w(c1) = turb % vis_t(c1) + flow % viscosity(c1)
-        else
-          turb % vis_w(c1) =    turb % y_plus(c1) * flow % viscosity(c1)  &
-                           / (  turb % y_plus(c1) * exp(-1.0 * ebf)      &
-                              + u_plus * exp(-1.0/ebf) + TINY)
-        end if
+      if(turb % y_plus(c1) < 3.0) then
+        turb % vis_w(c1) = turb % vis_t(c1) + flow % viscosity(c1)
+      else
+        turb % vis_w(c1) =    turb % y_plus(c1) * flow % viscosity(c1)  &
+                         / (  turb % y_plus(c1) * exp(-1.0 * ebf)       &
+                            + u_plus * exp(-1.0/ebf) + TINY)
+      end if
 
-        turb % y_plus(c1) = Y_Plus_Low_Re(turb,                  &
-                                          u_tau,                 &
-                                          grid % wall_dist(c1),  &
-                                          kin_vis)
+      turb % y_plus(c1) = Y_Plus_Low_Re(turb,                  &
+                                        u_tau,                 &
+                                        grid % wall_dist(c1),  &
+                                        kin_vis)
 
-        if(turb % rough_walls) then
-          z_o = Roughness_Coefficient(turb, turb % z_o_f(c1))
-          turb % y_plus(c1) = Y_Plus_Rough_Walls(turb,                  &
-                                                 u_tau,                 &
-                                                 grid % wall_dist(c1),  &
-                                                 kin_vis)
-          u_plus     = U_Plus_Rough_Walls(turb, grid % wall_dist(c1))
-          turb % vis_w(c1) = turb % y_plus(c1) * flow % viscosity(c1) / u_plus
-        end if
+      if(turb % rough_walls) then
+        z_o = Roughness_Coefficient(turb, turb % z_o_f(c1))
+        turb % y_plus(c1) = Y_Plus_Rough_Walls(turb,                  &
+                                               u_tau,                 &
+                                               grid % wall_dist(c1),  &
+                                               kin_vis)
+        u_plus = U_Plus_Rough_Walls(turb, grid % wall_dist(c1))
+        turb % vis_w(c1) = turb % y_plus(c1) * flow % viscosity(c1) / u_plus
+      end if
 
-        if(heat_transfer) then
-          pr   = Field_Mod_Prandtl_Number(flow, c1)
-          pr_t = Turb_Mod_Prandtl_Number(turb, c1)
-          beta = 9.24 * ((pr/pr_t)**0.75 - 1.0)  &
-               * (1.0 + 0.28 * exp(-0.007*pr/pr_t))
-          ebf = Turb_Mod_Ebf_Scalar(turb, c1, pr)
-          turb % con_w(c1) =    turb % y_plus(c1)                         &
-                              * flow % viscosity(c1)                      &
-                              * flow % capacity(c1)                       &
-                      / (  turb % y_plus(c1) * pr * exp(-1.0 * ebf)       &
-                         + (u_plus + beta) * pr_t * exp(-1.0 / ebf) + TINY)
-        end if
-      end if  ! Grid_Mod_Bnd_Cond_Type(grid,c2).eq.WALL or WALLFL
-    end if    ! c2 < 0
-  end do
+      if(heat_transfer) then
+        pr   = Field_Mod_Prandtl_Number(flow, c1)
+        pr_t = Turb_Mod_Prandtl_Number(turb, c1)
+        beta = 9.24 * ((pr/pr_t)**0.75 - 1.0)  &
+             * (1.0 + 0.28 * exp(-0.007*pr/pr_t))
+        ebf = Turb_Mod_Ebf_Scalar(turb, c1, pr)
+        turb % con_w(c1) =    turb % y_plus(c1)                            &
+                            * flow % viscosity(c1)                         &
+                            * flow % capacity(c1)                          &
+                    / (  turb % y_plus(c1) * pr * exp(-1.0 * ebf)          &
+                       + (u_plus + beta) * pr_t * exp(-1.0 / ebf) + TINY)
+      end if
+    end if  ! WALL or WALLFL
+  end do  ! 1, grid % n_faces
 
   call Grid_Mod_Exchange_Real(grid, turb % vis_t)
   call Grid_Mod_Exchange_Real(grid, turb % vis_w)

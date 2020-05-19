@@ -1,7 +1,7 @@
 !==============================================================================!
   subroutine Turb_Mod_Src_Rsm_Manceau_Hanjalic(turb, sol, name_phi)
 !------------------------------------------------------------------------------!
-!   Calculate source terms for Re stresses and dissipation for 
+!   Calculate source terms for Re stresses and dissipation for                 !
 !   RSM_MANCEAU_HANJALIC model                                                 !
 !------------------------------------------------------------------------------!
   implicit none
@@ -67,15 +67,15 @@
     b23 = vw % n(c) / (2.0 * kin % n(c))
     b32 = b23
 
-    s11 = u % x(c) 
-    s22 = v % y(c) 
-    s33 = w % z(c) 
-    s12 = 0.5*(u % y(c)+v % x(c)) 
+    s11 = u % x(c)
+    s22 = v % y(c)
+    s33 = w % z(c)
+    s12 = 0.5*(u % y(c)+v % x(c))
     s21 = s12
-    s13 = 0.5*(u % z(c)+w % x(c)) 
-    s31 = s13 
-    s23 = 0.5*(v % z(c)+w % y(c)) 
-    s32 = s23 
+    s13 = 0.5*(u % z(c)+w % x(c))
+    s31 = s13
+    s23 = 0.5*(v % z(c)+w % y(c))
+    s32 = s23
 
     v11 = 0.0
     v22 = 0.0
@@ -117,7 +117,7 @@
              - 2.0 * omega_y * 2.0 * uw % n(c)  &
              + 2.0 * omega_z * 2.0 * uv % n(c)
 
-      diss_wall = uu % n(c) / kin % n(c) * eps % n(c) 
+      diss_wall = uu % n(c) / kin % n(c) * eps % n(c)
       diss_hom  = 2.0/3.0 * eps % n(c)
 
       b(c) = b(c) + flow % density(c) * (max(prod,0.0)               &
@@ -149,17 +149,17 @@
                                      -2.0/3.0 * b_lk_s_lk)               &
                 +  g5 * kin % n(c) *( 2.0*(b21*v21 + b22*v22 + b23*v23))
 
-      prod = - 2.0 * (  uv % n(c) * v % x(c)    &
-                      + vv % n(c) * v % y(c)    &
-                      + vw % n(c) * v % z(c))   &
-             + 2.0 * omega_x * 2.0 *vw % n(c)   &
+      prod = - 2.0 * (  uv % n(c) * v % x(c)   &
+                      + vv % n(c) * v % y(c)   &
+                      + vw % n(c) * v % z(c))  &
+             + 2.0 * omega_x * 2.0 *vw % n(c)  &
              - 2.0 * omega_z * 2.0 *uw % n(c)
 
 
       phi_tot = (1.0-f22 % n(c)**2) * phi_wall  &
               +      f22 % n(c)**2  * phi_hom
 
-      diss_wall = vv % n(c)/kin % n(c) * eps % n(c) 
+      diss_wall = vv % n(c)/kin % n(c) * eps % n(c)
       diss_hom  = 2.0/3.0 * eps % n(c)
 
       b(c) = b(c) + flow % density(c) * (max(prod,0.0)               &
@@ -200,7 +200,7 @@
       phi_tot = (1.0-f22 % n(c)**2) * phi_wall  &
               +      f22 % n(c)**2  * phi_hom
 
-      diss_wall = ww % n(c)/kin % n(c) * eps % n(c) 
+      diss_wall = ww % n(c)/kin % n(c) * eps % n(c)
       diss_hom  = 2.0/3.0 * eps % n(c)
 
       b(c) = b(c) + flow % density(c) * (max(prod,0.0)               &
@@ -233,7 +233,7 @@
                                 + b21*s11 + b22*s12 + b23*s13)   &
               +  g5*kin % n(c)*(  b11*v21 + b12*v22 + b13*v23    &
                                 + b21*v11 + b22*v12 + b23*v13)
- 
+
       prod = -(  uu % n(c) * v % x(c)                    &
                + uw % n(c) * v % z(c)                    &
                + uv % n(c) *(v % y(c) + u % x(c))        &
@@ -246,7 +246,7 @@
       phi_tot = (1.0-f22 % n(c)**2) * phi_wall  &
               +      f22 % n(c)**2  * phi_hom
 
-      diss_wall = uv % n(c)/kin % n(c) * eps % n(c) 
+      diss_wall = uv % n(c)/kin % n(c) * eps % n(c)
 
       b(c) = b(c) + flow % density(c) * (prod                        &
                   + (1.0-f22 % n(c)**2) * phi_wall                   &
@@ -290,17 +290,17 @@
       phi_tot = (1.0-f22 % n(c)**2) * phi_wall  &
                    + f22 % n(c)**2  * phi_hom
 
-      diss_wall = uw % n(c)/kin % n(c) * eps % n(c) 
+      diss_wall = uw % n(c)/kin % n(c) * eps % n(c)
 
       b(c) = b(c) + flow % density(c) * (prod                        &
                   + (1.0-f22 % n(c)**2) * phi_wall                   &
                   +      f22 % n(c)**2  *(phi_hom)) * grid % vol(c)
 
-      a % val(a % dia(c)) =  a % val(a % dia(c))                               &
-        + flow % density(c) * ((1.0 - f22 % n(c)**2) * 6.0 * eps % n(c)    &
-                            / kin % n(c)                                   &
-                + f22 % n(c)**2  *(  g1 * eps % n(c) / (2.0 * kin % n(c))      &
-                         + g1_star * turb % p_kin(c) / (2.0 * kin % n(c)))     &
+      a % val(a % dia(c)) =  a % val(a % dia(c))                            &
+        + flow % density(c) * ((1.0 - f22 % n(c)**2) * 6.0 * eps % n(c)     &
+                            / kin % n(c)                                    &
+                + f22 % n(c)**2  *(  g1 * eps % n(c) / (2.0 * kin % n(c))   &
+                         + g1_star * turb % p_kin(c) / (2.0 * kin % n(c)))  &
           ) * grid % vol(c)
 
     !---------------!
@@ -361,23 +361,21 @@
       a % val(a % dia(c)) =  a % val(a % dia(c))  &
                           + c_2e * esor * flow % density(c)
     end if
-  end do
+  end do  ! 1, grid % n_cells
 
   if(name_phi == 'EPS') then
     do s = 1, grid % n_faces
-      c1=grid % faces_c(1,s)
-      c2=grid % faces_c(2,s)
+      c1 = grid % faces_c(1,s)
+      c2 = grid % faces_c(2,s)
 
-      ! Calculate a values of dissipation on wall
-      if(c2 < 0) then
+      if(turb % bnd_cond_type(c2) .eq. WALL .or. &
+         turb % bnd_cond_type(c2) .eq. WALLFL) then
+        ! Calculate a values of dissipation on wall
         kin_vis = flow % viscosity(c1) / flow % density(c1)
-        if(Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL .or. &
-           Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALLFL) then
-          eps % n(c2) = kin_vis*(uu % n(c1) + vv % n(c1) + ww % n(c1))&
-                      / grid % wall_dist(c1)**2
-        end if   ! end if of BC=wall
-      end if    ! end if of c2<0
-    end do
+        eps % n(c2) = kin_vis*(uu % n(c1) + vv % n(c1) + ww % n(c1))&
+                    / grid % wall_dist(c1)**2
+      end if  ! WALL or WALLFL
+    end do  ! 1, grid % n_faces
   end if
 
   end subroutine

@@ -41,42 +41,39 @@
     c1 = grid % faces_c(1,s)
     c2 = grid % faces_c(2,s)
 
-    if(c2 < 0) then
+    ! If wall boundary condition
+    if(turb % bnd_cond_type(c2) .eq. WALL .or.  &
+       turb % bnd_cond_type(c2) .eq. WALLFL) then
 
-      ! If wall boundary condition
-      if(Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL .or.  &
-         Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALLFL) then
+      ! Wall normal
+      nx = grid % sx(s) / grid % s(s)
+      ny = grid % sy(s) / grid % s(s)
+      nz = grid % sz(s) / grid % s(s)
 
-        ! Wall normal
-        nx = grid % sx(s) / grid % s(s)
-        ny = grid % sy(s) / grid % s(s)
-        nz = grid % sz(s) / grid % s(s)
+      ! Velocity tangential to the wall (u_t = u - u_n = u (1.0-n))
+      ut = u % n(c1) * (1.0 - nx)
+      vt = v % n(c1) * (1.0 - ny)
+      wt = w % n(c1) * (1.0 - nz)
 
-        ! Velocity tangential to the wall (u_t = u - u_n = u (1.0-n))
-        ut = u % n(c1) * (1.0 - nx)
-        vt = v % n(c1) * (1.0 - ny)
-        wt = w % n(c1) * (1.0 - nz)
+      ut_mag = sqrt(ut**2 + vt**2 + wt**2)
 
-        ut_mag = sqrt(ut**2 + vt**2 + wt**2)
+      ! Shear stress magnitude at the boundary cell
+      !tau_wall = visc(c1) * ut_mag  &
+      !       / grid % wall_dist(c1) * grid % s(s)
 
-        ! Shear stress magnitude at the boundary cell
-        !tau_wall = visc(c1) * ut_mag  &
-        !       / grid % wall_dist(c1) * grid % s(s)
+      !tau_wall_x = tau_wall_x + tau_wall * ut / ut_mag
+      !tau_wall_y = tau_wall_y + tau_wall * vt / ut_mag
+      !tau_wall_z = tau_wall_z + tau_wall * wt / ut_mag
 
-        !tau_wall_x = tau_wall_x + tau_wall * ut / ut_mag
-        !tau_wall_y = tau_wall_y + tau_wall * vt / ut_mag
-        !tau_wall_z = tau_wall_z + tau_wall * wt / ut_mag
-
-        ! Summarize shear stress components at the boundary cell
-        tau_wall_x = tau_wall_x + visc(c1) * ut &
-                   / grid % wall_dist(c1) * grid % s(s)
-        tau_wall_y = tau_wall_y + visc(c1) * vt &
-                   / grid % wall_dist(c1) * grid % s(s)
-        tau_wall_z = tau_wall_z + visc(c1) * wt &
-                   / grid % wall_dist(c1) * grid % s(s)
-      end if  ! if wall
-    end if
-  end do
+      ! Summarize shear stress components at the boundary cell
+      tau_wall_x = tau_wall_x + visc(c1) * ut &
+                 / grid % wall_dist(c1) * grid % s(s)
+      tau_wall_y = tau_wall_y + visc(c1) * vt &
+                 / grid % wall_dist(c1) * grid % s(s)
+      tau_wall_z = tau_wall_z + visc(c1) * wt &
+                 / grid % wall_dist(c1) * grid % s(s)
+    end if  ! WALL or WALLFL
+  end do  ! 1, grid % n_faces
 
   if( abs(bulk % flux_x_o) >= TINY ) then
     call Comm_Mod_Global_Sum_Real(tau_wall_x)
