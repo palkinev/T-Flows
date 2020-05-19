@@ -193,7 +193,6 @@
   !   Spatial discretization   !
   !----------------------------!
   do s = 1, grid % n_faces
-
     c1 = grid % faces_c(1,s)
     c2 = grid % faces_c(2,s)
 
@@ -222,13 +221,13 @@
 
     ! Cross diffusion part
     ui % c(c1) = ui % c(c1) + f_ex - f_im + f_stress * flow % density(c1)
-    if(c2  > 0) then
+    if(c2 > 0) then
       ui % c(c2) = ui % c(c2) - f_ex + f_im - f_stress * flow % density(c2)
     end if
 
     ! Compute the coefficients for the sysytem matrix
-    a12 = a0 - min(m_flux % n(s), real(0.0))
-    a21 = a0 + max(m_flux % n(s), real(0.0))
+    a12 = a0 - min(m_flux % n(s), 0.0)
+    a21 = a0 + max(m_flux % n(s), 0.0)
 
     ! Fill the system matrix
     if(c2 > 0) then
@@ -236,16 +235,13 @@
       a % val(a % dia(c1))  = a % val(a % dia(c1))  + a12
       a % val(a % pos(2,s)) = a % val(a % pos(2,s)) - a21
       a % val(a % dia(c2))  = a % val(a % dia(c2))  + a21
-    else if(c2  < 0) then
-      ! Outflow is not included because it was causing problems
-      if((Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. INFLOW)  .or.  &
-         (Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL)    .or.  &
-         (Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. CONVECT) .or.  &
-         (Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALLFL)) then
-         ! (Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. OUTFLOW) ) then
-        a % val(a % dia(c1)) = a % val(a % dia(c1)) + a12
-        b(c1) = b(c1) + a12 * ui % n(c2)
-      end if
+     else if((ui % bnd_cond_type(c2) .eq. INFLOW)  .or.   &
+             (ui % bnd_cond_type(c2) .eq. WALL)    .or.   &
+             (ui % bnd_cond_type(c2) .eq. CONVECT) .or.   &
+             (ui % bnd_cond_type(c2) .eq. WALLFL) ) then
+           ! (ui % bnd_cond_type(c2) .eq. OUTFLOW) ) then
+      a % val(a % dia(c1)) = a % val(a % dia(c1)) + a12
+      b(c1) = b(c1) + a12 * ui % n(c2)
     end if
 
     ! Here we clean up momentum from the false diffusion

@@ -33,7 +33,6 @@
   real, contiguous,  pointer :: b(:)
   integer                    :: s, c, c1, c2, exec_iter, nc, nb
   real                       :: f_ex, f_im
-  real                       :: phis
   real                       :: a0, a12, a21
   real                       :: vis_eff
   real                       :: phix_f, phiy_f, phiz_f

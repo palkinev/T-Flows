@@ -13,7 +13,8 @@
   type(Var_Type),   pointer :: u, v, w, p, t, phi
   type(Var_Type),   pointer :: kin, eps, f22, zeta, vis, t2
   type(Var_Type),   pointer :: uu, vv, ww, uv, uw, vw
-  integer                   :: c, n, sc
+  integer                   :: c, sc
+  real                      :: n
   real,             pointer :: u_mean(:), v_mean(:), w_mean(:),  &
                                p_mean(:), t_mean(:)
   real,             pointer :: kin_mean (:), eps_mean(:),  &
@@ -61,7 +62,7 @@
   ut_res => turb % ut_res;  vt_res => turb % vt_res;  wt_res => turb % wt_res
   t2_res => turb % t2_res
 
-  n = n1 - n0
+  n = real(n1 - n0)
 
   if(n > -1) then
 

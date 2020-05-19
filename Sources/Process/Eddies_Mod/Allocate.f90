@@ -19,7 +19,7 @@
   type(Grid_Type), pointer :: grid
   integer, allocatable     :: n_bnd_cells_proc(:)
   integer, allocatable     :: s_bnd_cell_proc(:)
-  integer                  :: e, c, n, run, cnt_bnd_cells
+  integer                  :: e
 !==============================================================================!
 
   ! Store pointers to grid, flow and the name of boundary condition
@@ -31,7 +31,7 @@
   !   Allocate memory   !
   !---------------------!
 
-  ! Store number of eddies ...
+  ! Store number of eddies
   eddies % n_eddies   = n_edd
   eddies % max_radius = max_r
   eddies % intensity  = intns

@@ -24,7 +24,6 @@
   real, contiguous,  pointer :: b(:)
   integer                    :: s, c, c1, c2, exec_iter
   real                       :: f_ex, f_im
-  real                       :: phis
   real                       :: a0, a12, a21
   real                       :: vis_eff
   real                       :: phi_x_f, phi_y_f, phi_z_f
@@ -96,17 +95,17 @@
     c1 = grid % faces_c(1,s)
     c2 = grid % faces_c(2,s)
 
-    visc_f =        grid % fw(s)  * flow % viscosity(c1)   &
+    visc_f =        grid % fw(s)  * flow % viscosity(c1)  &
            + (1.0 - grid % fw(s)) * flow % viscosity(c2)
 
     vis_eff = visc_f + (    grid % fw(s)  * turb % vis_t(c1)   &
                      + (1.0-grid % fw(s)) * turb % vis_t(c2))  &
                      / phi % sigma
 
-    if(turb % model .eq. SPALART_ALLMARAS .or.               &
-       turb % model .eq. DES_SPALART)                        &
-      vis_eff = visc_f + (    grid % fw(s)  * vis % n(c1)    &
-                       + (1.0-grid % fw(s)) * vis % n(c2))   &
+    if(turb % model .eq. SPALART_ALLMARAS .or.              &
+       turb % model .eq. DES_SPALART)                       &
+      vis_eff = visc_f + (    grid % fw(s)  * vis % n(c1)   &
+                       + (1.0-grid % fw(s)) * vis % n(c2))  &
                        / phi % sigma
 
     if(turb % model .eq. HYBRID_LES_RANS) then
@@ -144,8 +143,8 @@
     a0 = vis_eff * a % fc(s)
 
     ! Implicit diffusive flux
-    f_im = (  phi_x_f * grid % dx(s)                      &
-            + phi_y_f * grid % dy(s)                      &
+    f_im = (  phi_x_f * grid % dx(s)         &
+            + phi_y_f * grid % dy(s)         &
             + phi_z_f * grid % dz(s) ) * a0
 
     ! Cross diffusion part
@@ -158,8 +157,8 @@
     a12 = a0
     a21 = a0
 
-    a12 = a12 - min(flux(s), real(0.0))
-    a21 = a21 + max(flux(s), real(0.0))
+    a12 = a12 - min(flux(s), 0.0)
+    a21 = a21 + max(flux(s), 0.0)
 
     ! Fill the system matrix
     if(c2 > 0) then

@@ -42,15 +42,14 @@
   real, contiguous,  pointer :: b(:)
   type(Face_Type),   pointer :: m_flux
   type(Var_Type),    pointer :: phi
-  integer                    :: n, c, s, c1, c2, row, col, exec_iter
-  real                       :: a0, a12, a21
+  integer                    :: c, s, c1, c2, row, col, exec_iter
+  real                       :: a12, a21
   real                       :: ns
   real                       :: dif_eff1, f_ex1, f_im1
   real                       :: dif_eff2, f_ex2, f_im2
   real                       :: phix_f1, phiy_f1, phiz_f1
   real                       :: phix_f2, phiy_f2, phiz_f2
-  real                       :: phis, sc_t1, sc_t2
-  character(len=80)          :: name
+  ! real                       :: sc_t1, sc_t2
 !------------------------------------------------------------------------------!
 !
 !  The form of equations which are solved:
@@ -229,7 +228,7 @@
       a % val(a % dia(c)) = a % val(a % dia(c))  &
                           - phi % c(c) / (phi % n(c) + MICRO)
     end if
-  end do
+  end do  ! 1, grid % n_cells
 
   !--------------------!
   !                    !
@@ -267,7 +266,7 @@
         b(c) = b(c) - (  u1uj_phij_x(c)  &
                        + u2uj_phij_y(c)  &
                        + u3uj_phij_z(c) ) * grid % vol(c)
-      end do
+      end do  ! 1, grid % n_cells
 
       !------------------------------------------------------------------!
       !   Here we clean up transport equation from the false diffusion   !

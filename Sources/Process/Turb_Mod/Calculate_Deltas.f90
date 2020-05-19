@@ -11,8 +11,6 @@
   implicit none
 !---------------------------------[Arguments]----------------------------------!
   type(Turb_Type), target :: turb
-!----------------------------------[Calling]-----------------------------------!
-  real Distance
 !-----------------------------------[Locals]-----------------------------------!
   type(Grid_Type),  pointer :: grid
   type(Field_Type), pointer :: flow
@@ -46,7 +44,6 @@
 
   ! Browse through faces
   do s = 1, grid % n_faces
-
     c1 = grid % faces_c(1,s)
     c2 = grid % faces_c(2,s)
 
