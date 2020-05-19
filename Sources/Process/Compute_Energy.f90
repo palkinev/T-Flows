@@ -26,7 +26,7 @@
   type(Solver_Type),     target :: sol
   integer                       :: ini
   real                          :: dt
-!-----------------------------------[Locals]-----------------------------------! 
+!-----------------------------------[Locals]-----------------------------------!
   type(Grid_Type),   pointer :: grid
   type(Var_Type),    pointer :: u, v, w, t
   type(Var_Type),    pointer :: ut, vt, wt
@@ -177,11 +177,9 @@
     if(turb % model .eq. K_EPS        .or.  &
        turb % model .eq. K_EPS_ZETA_F .or.  &
        turb % model .eq. HYBRID_LES_RANS) then
-      if(c2 < 0) then
-        if(Var_Mod_Bnd_Cond_Type(t, c2) .eq. WALL .or.  &
-           Var_Mod_Bnd_Cond_Type(t, c2) .eq. WALLFL) then
-          con_eff_f = turb % con_w(c1)
-        end if
+      if(t % bnd_cond_type(c2) .eq. WALL .or.  &
+         t % bnd_cond_type(c2) .eq. WALLFL) then
+        con_eff_f = turb % con_w(c1)
       end if
     end if
 
@@ -255,21 +253,18 @@
       a % val(a % dia(c2))  = a % val(a % dia(c2)) + a21
       a % val(a % pos(1,s)) = a % val(a % pos(1,s)) - a12
       a % val(a % pos(2,s)) = a % val(a % pos(2,s)) - a21
-    else if(c2.lt.0) then
       ! Outflow is included because of the flux
       ! corrections which also affects velocities
-      if( (Var_Mod_Bnd_Cond_Type(t, c2) .eq. INFLOW) .or.  &
-          (Var_Mod_Bnd_Cond_Type(t, c2) .eq. WALL)   .or.  &
-          (Var_Mod_Bnd_Cond_Type(t, c2) .eq. CONVECT) ) then
-        a % val(a % dia(c1)) = a % val(a % dia(c1)) + a12
-        b(c1)  = b(c1)  + a12 * t % n(c2)
-      ! In case of wallflux 
-      else if(Var_Mod_Bnd_Cond_Type(t, c2) .eq. WALLFL) then
-        b(c1) = b(c1) + grid % s(s) * t % q(c2)
-      end if
+    else if ( (t % bnd_cond_type(c2) .eq. INFLOW) .or.  &
+              (t % bnd_cond_type(c2) .eq. WALL)   .or.  &
+              (t % bnd_cond_type(c2) .eq. CONVECT) ) then
+      a % val(a % dia(c1)) = a % val(a % dia(c1)) + a12
+      b(c1)  = b(c1)  + a12 * t % n(c2)
+    else if (t % bnd_cond_type(c2) .eq. WALLFL) then
+      b(c1) = b(c1) + grid % s(s) * t % q(c2)
     end if
 
-  end do  ! through sides
+  end do  ! 1, grid % n_faces
 
   ! Cross diffusion terms are treated explicity
   do c = 1, grid % n_cells

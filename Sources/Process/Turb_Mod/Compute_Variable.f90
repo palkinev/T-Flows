@@ -158,44 +158,35 @@
     a12 = a0
     a21 = a0
 
-    a12 = a12  - min(flux(s), real(0.0))
-    a21 = a21  + max(flux(s), real(0.0))
+    a12 = a12 - min(flux(s), real(0.0))
+    a21 = a21 + max(flux(s), real(0.0))
 
     ! Fill the system matrix
-    if(c2  > 0) then
+    if(c2 > 0) then
       a % val(a % pos(1,s)) = a % val(a % pos(1,s)) - a12
       a % val(a % dia(c1))  = a % val(a % dia(c1))  + a12
       a % val(a % pos(2,s)) = a % val(a % pos(2,s)) - a21
       a % val(a % dia(c2))  = a % val(a % dia(c2))  + a21
-    else if(c2 < 0) then
-
-      ! All modeled turbulent quantities except t2(!) are zero at the wall
-      ! or specified otherwise in the control file
-      if(phi % name .ne. 'T2') then
-
+     else if((turb % bnd_cond_type(c2) .eq. INFLOW)  .or.   &
+             (turb % bnd_cond_type(c2) .eq. WALL)    .or.   &
+             (turb % bnd_cond_type(c2) .eq. PRESSURE).or.   &
+             (turb % bnd_cond_type(c2) .eq. CONVECT) .or.   &
+             (turb % bnd_cond_type(c2) .eq. WALLFL) ) then
         ! Outflow is not included because it was causing problems
-        if((Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. INFLOW)  .or.   &
-           (Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL)    .or.   &
-           (Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. PRESSURE).or.   &
-           (Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. CONVECT) .or.   &
-           (Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALLFL) ) then
-          a % val(a % dia(c1)) = a % val(a % dia(c1)) + a12
-          b(c1) = b(c1) + a12 * phi % n(c2)
-        end if
-
+      if(phi % name .ne. 'T2') then
+        ! All modeled turbulent quantities except t2(!) are zero at the wall
+        ! or specified otherwise in the control file
+        a % val(a % dia(c1)) = a % val(a % dia(c1)) + a12
+        b(c1) = b(c1) + a12 * phi % n(c2)
+      else
       ! For t2; fix the value at all these boundary condition types,
       ! but not WALLFL!!!
-      else
-        if((Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. INFLOW)  .or.   &
-           (Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. WALL)    .or.   &
-           (Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. PRESSURE).or.   &
-           (Grid_Mod_Bnd_Cond_Type(grid,c2) .eq. CONVECT) ) then
+        if (turb % bnd_cond_type(c2) .ne. WALLFL) then
           a % val(a % dia(c1)) = a % val(a % dia(c1)) + a12
           b(c1) = b(c1) + a12 * phi % n(c2)
-        end if
-      end if
-
-    end if  ! if c2 < 0
+        end if  ! .not. WALLFL
+      end if  ! t2
+    end if
 
   end do  ! through faces
 
